@@ -1,0 +1,29 @@
+{
+    "schemaVersion": 1,
+    "id": "fancy-auth",
+    "version": "${version}",
+    "name": "FancyAuth",
+    "description": "Server authentication",
+    "authors": [
+        "ShroomPye"
+    ],
+    "contact": {
+        "repo": "https://www.github.com/URTOJU/FancyAuth"
+    },
+    "license": "MIT",
+    "icon": "assets/fancy-auth/icon.png",
+    "environment": "server",
+    "entrypoints": {
+        "main": [
+            "io.github.shroompye.fancyauth.FancyAuth"
+        ]
+    },
+    "mixins": [
+        "fancy-auth.mixins.json"
+    ],
+    "depends": {
+        "fabricloader": ">=0.11.6",
+        "fabric": "*",
+        "minecraft": "1.17"
+    }
+}
