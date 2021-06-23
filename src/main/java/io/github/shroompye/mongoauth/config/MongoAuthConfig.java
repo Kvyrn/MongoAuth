@@ -39,7 +39,7 @@ public class MongoAuthConfig extends Config {
         /**
          * Usernames forced into offline mode, regardless of mojang account exisrtance.
          */
-        public static final ArrayConfigItem<String> offlineNames = new ArrayConfigItem<>("forced-offline-names", new String[]{}, "forced-offline-names");
+        public static final ArrayConfigItem<String> offlineNames = new ArrayConfigItem<>("forced-offline-names", new String[]{""}, "forced-offline-names");
         /**
          * Below 1 is disabled
          */
