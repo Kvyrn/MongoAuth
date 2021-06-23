@@ -1,0 +1,20 @@
+{
+    "required": true,
+    "minVersion": "0.8",
+    "package": "io.github.shroompye.mongoauth.mixin",
+    "compatibilityLevel": "JAVA_8",
+    "mixins": [
+        "PlayerEntityAccessor",
+        "PlayerListS2CPacketMixin",
+        "PlayerManagerMixin",
+        "ServerLoginNetworkHandlerMixin",
+        "ServerPlayerEntityMixin",
+        "ServerPlayNetworkHandlerMixin",
+        "SlotMixin"
+    ],
+    "client": [
+    ],
+    "injectors": {
+        "defaultRequire": 1
+    }
+}

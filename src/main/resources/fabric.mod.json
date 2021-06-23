@@ -1,8 +1,8 @@
 {
     "schemaVersion": 1,
-    "id": "fancy-auth",
+    "id": "mongo-auth",
     "version": "${version}",
-    "name": "FancyAuth",
+    "name": "MongoAuth",
     "description": "Server authentication",
     "authors": [
         "ShroomPye"
@@ -11,15 +11,16 @@
         "repo": "https://www.github.com/URTOJU/FancyAuth"
     },
     "license": "MIT",
-    "icon": "assets/fancy-auth/icon.png",
+    "icon": "assets/mongo-auth/icon.png",
     "environment": "server",
     "entrypoints": {
         "main": [
-            "io.github.shroompye.fancyauth.FancyAuth"
+            "io.github.shroompye.mongoauth.MongoAuth"
         ]
     },
+    "accessWidener": "mongo-auth.accesswidener",
     "mixins": [
-        "fancy-auth.mixins.json"
+        "mongo-auth.mixins.json"
     ],
     "depends": {
         "fabricloader": ">=0.11.6",
