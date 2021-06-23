@@ -1,11 +1,9 @@
 package io.github.shroompye.mongoauth;
 
-import com.mongodb.MongoClient;
+import com.mongodb.MongoClientSettings;
 import com.mongodb.MongoCredential;
-import com.mongodb.client.FindIterable;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoCursor;
-import com.mongodb.client.MongoDatabase;
+import com.mongodb.ServerAddress;
+import com.mongodb.client.*;
 import com.mongodb.client.model.Filters;
 import io.github.shroompye.mongoauth.commands.*;
 import io.github.shroompye.mongoauth.config.MongoAuthConfig;
@@ -25,6 +23,7 @@ import org.apache.logging.log4j.Logger;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -41,8 +40,6 @@ public class MongoAuth implements ModInitializer {
     public static String NAME = "";
 
     private static MongoClient client;
-    @SuppressWarnings("unused")
-    private static MongoCredential credential;
     private static MongoDatabase database;
     private static MongoCollection<Document> authCollection;
     private static MongoCollection<Document> globalsCollection;
@@ -72,9 +69,16 @@ public class MongoAuth implements ModInitializer {
     }
 
     private static void prepDB() {
-        String address = MongoAuthConfig.DatabaseInfo.address.getValue();
-        client = address.contains(":") ? new MongoClient(address.split(":")[0], Integer.parseInt(address.split(":")[1])) : new MongoClient(address);
-        credential = MongoCredential.createCredential(DatabaseInfo.username.getValue(), DatabaseInfo.userSourceDB.getValue(), DatabaseInfo.password.getValue().toCharArray());
+        String[] split = DatabaseInfo.address.getValue().split(":");
+        int port = split.length < 2 ? 27017 : Integer.parseInt(split[1]);
+        String address = split[0];
+        MongoCredential credential = MongoCredential.createCredential(DatabaseInfo.username.getValue(), DatabaseInfo.userSourceDB.getValue(), DatabaseInfo.password.getValue().toCharArray());
+        MongoClientSettings settings = MongoClientSettings.builder()
+                .credential(credential)
+                .applyToSslSettings(builder -> builder.enabled(true))
+                .applyToClusterSettings(builder -> builder.hosts(Arrays.asList(new ServerAddress(address, port))))
+                .build();
+        client = MongoClients.create(settings);
 
         try {
             database = client.getDatabase(DatabaseInfo.database.getValue());
@@ -118,7 +122,7 @@ public class MongoAuth implements ModInitializer {
 
     public static void restoreInv(ServerPlayerEntity player) {
         Bson filter = Filters.and(Filters.eq("uuid", player.getUuidAsString()), Filters.eq("type", "inventory"));
-        PlayerInventory inventory = ((PlayerEntityAccessor)player).getInventory();
+        PlayerInventory inventory = ((PlayerEntityAccessor) player).getInventory();
         FindIterable<Document> documents = serverSpecificCollection.find(filter);
         MongoCursor<Document> iterator = documents.iterator();
         if (!iterator.hasNext()) return;
@@ -139,7 +143,7 @@ public class MongoAuth implements ModInitializer {
     }
 
     public static void saveAuthPlayer(ServerPlayerEntity player) {
-        Document doc = ((AuthenticationPlayer)player).save();
+        Document doc = ((AuthenticationPlayer) player).save();
         doc.put("uuid", player.getUuidAsString());
         doc.put("type", "authPlayer");
         serverSpecificCollection.insertOne(doc);
@@ -152,6 +156,6 @@ public class MongoAuth implements ModInitializer {
         if (!iterator.hasNext()) return;
         Document document = iterator.next();
         serverSpecificCollection.deleteMany(filter);
-        ((AuthenticationPlayer)player).load(document);
+        ((AuthenticationPlayer) player).load(document);
     }
 }
