@@ -23,7 +23,7 @@ import org.apache.logging.log4j.Logger;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -75,8 +75,7 @@ public class MongoAuth implements ModInitializer {
         MongoCredential credential = MongoCredential.createCredential(DatabaseInfo.username.getValue(), DatabaseInfo.userSourceDB.getValue(), DatabaseInfo.password.getValue().toCharArray());
         MongoClientSettings settings = MongoClientSettings.builder()
                 .credential(credential)
-                .applyToSslSettings(builder -> builder.enabled(true))
-                .applyToClusterSettings(builder -> builder.hosts(Arrays.asList(new ServerAddress(address, port))))
+                .applyToClusterSettings(builder -> builder.hosts(Collections.singletonList(new ServerAddress(address, port))))
                 .build();
         client = MongoClients.create(settings);
 
