@@ -22,10 +22,11 @@ public class AuthData {
         this.uuid = uuid;
     }
 
-    private AuthData(String passwordHash, @Nullable AuthSession session, UUID uuid) {
+    private AuthData(String passwordHash, @Nullable AuthSession session, UUID uuid, boolean leftUnauth) {
         this.session = session;
         this.uuid = uuid;
         this.paswordHash = passwordHash;
+        leftUnathenticated = leftUnauth;
     }
 
     public boolean registered() {
@@ -41,7 +42,7 @@ public class AuthData {
     }
 
     public static String createHash(String password) {
-        return ARGON_2.hash(4, 512*1024, 4, password);
+        return ARGON_2.hash(4, 512 * 1024, 4, password);
     }
 
     public boolean hasValidSession(String ip) {
@@ -62,7 +63,8 @@ public class AuthData {
         Document document = new Document();
         document.put("passwordHash", paswordHash);
         document.put("uuid", uuid.toString());
-        @SuppressWarnings("ConstantConditions") boolean hasSession = hasValidSession(session.ip);
+        document.put("leftUnathenticated", leftUnathenticated);
+        boolean hasSession = this.session != null && session.valid(session.ip);
         document.put("hasSession", hasSession);
         if (hasSession) {
             document.put("sessionExpiresOn", session.expiresOn);
@@ -74,13 +76,14 @@ public class AuthData {
     public static AuthData fromDocument(Document document) {
         String passwordHash = document.getString("passwordHash");
         UUID uuid = UUID.fromString(document.getString("uuid"));
+        boolean leftUnauth = document.getBoolean("leftUnathenticated");
         AuthSession session1 = null;
         if (document.getBoolean("hasSession")) {
             long sessionExpiery = document.getLong("sessionExpiresOn");
             String ip = document.getString("sessionIp");
             session1 = new AuthSession(sessionExpiery, ip);
         }
-        return new AuthData(passwordHash, session1, uuid);
+        return new AuthData(passwordHash, session1, uuid, leftUnauth);
     }
 
     public boolean authenticated() {

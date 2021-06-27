@@ -8,7 +8,9 @@
         "ShroomPye"
     ],
     "contact": {
-        "repo": "https://www.github.com/URTOJU/FancyAuth"
+        "repo": "https://www.github.com/URTOJU/MongoAuth",
+        "sources": "https://www.github.com/URTOJU/MongoAuth",
+        "issues": "https://www.github.com/URTOJU/MongoAuth/issues"
     },
     "license": "MIT",
     "icon": "assets/mongo-auth/icon.png",

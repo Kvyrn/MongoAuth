@@ -47,7 +47,7 @@ public class MongoAuthConfig extends Config {
         /**
          * Kick after some time in unauthenticated state
          */
-        public static final IntegerConfigItem kickTimer = new IntegerConfigItem("authentication-time", 60, "authentication-time");
+        public static final IntegerConfigItem kickTimer = new IntegerConfigItem("authentication-time", 20, "authentication-time");
 
         public AuthConfig() {
             super(of(requreAccount, mojangLogin, passwordRegister, offlineNames, sessionTime, kickTimer), "auth");
@@ -62,11 +62,11 @@ public class MongoAuthConfig extends Config {
         public static final StringConfigItem username = new StringConfigItem("username", "", "username");
         public static final StringConfigItem userSourceDB = new StringConfigItem("user-source-database", "", "user-source-database");
         public static final StringConfigItem password = new StringConfigItem("password", "", "password");
-        public static final StringConfigItem database = new StringConfigItem("database", "MinecraftAuthentication", "database");
+        public static final StringConfigItem database = new StringConfigItem("database", "MinecraftAuth", "database");
         /**
          * Used to identify server specific info.
          */
-        public static final StringConfigItem serverId = new StringConfigItem("server-id-required", "server", "server-id-required");
+        public static final StringConfigItem serverId = new StringConfigItem("server-id", "server", "server-id-required");
 
         public DatabaseInfo() {
             super(of(address, username, userSourceDB, password, database, serverId), "database");
@@ -109,12 +109,12 @@ public class MongoAuthConfig extends Config {
         public static final StringConfigItem alredyRegistered = new StringConfigItem("alredy-registered", "You are alredy registered", "alredy-registered");
         public static final StringConfigItem alredyLoggedIn = new StringConfigItem("alredy-logged-in", "You are alredy logged in", "alredy-logged-in");
         public static final StringConfigItem alredyLoggedOut = new StringConfigItem("alredy-logged-out", "You are alredy logged out", "alredy-logged-out");
+        public static final BooleanConfigItem suggestRefreshAuthCommand = new BooleanConfigItem("suggest-refreshauth", true, "suggest-refreshauth");
         public static final StringConfigItem refreshAuthCommandSuggestion1 = new StringConfigItem("refreshauth-suggestion1", "If you changed your password, use ", "refreshauth-suggestion1");
         public static final StringConfigItem refreshAuthCommandSuggestion2 = new StringConfigItem("refreshauth-suggestion2", "/refreshauth", "refreshauth-suggestion2");
         public static final StringConfigItem refreshAuthCommandSuggestion3 = new StringConfigItem("refreshauth-suggestion3", " to update it.", "refreshauth-suggestion3");
         public static final StringConfigItem logInSuccesful = new StringConfigItem("login-succesful", "Logged in!", "login-succesful");
         public static final StringConfigItem logOutSuccesful = new StringConfigItem("logout-succesful", "Logged out!", "logout-succesful");
-
         public static final StringConfigItem cacheCleared = new StringConfigItem("cache-cleared", "Cache cleared", "cache-cleared");
         public static final StringConfigItem userRemoved = new StringConfigItem("user-removed", "User %s removed", "user-removed");
         public static final StringConfigItem userInexistent = new StringConfigItem("user-inexistent", "User %s does not exist!", "user-inexistent");
@@ -122,20 +122,24 @@ public class MongoAuthConfig extends Config {
         public static final StringConfigItem globalPasswordChanged = new StringConfigItem("global-password-changed", "Global password changed", "global-password-changed");
         public static final StringConfigItem requirementUnchanged = new StringConfigItem("global-password-req-unchanged", "Global password requrement is alredy %s!", "global-password-req-unchanged");
         public static final StringConfigItem requirementSet = new StringConfigItem("global-password-req-changed", "Global password requrement set to %s!", "global-password-req-changed");
+        public static final StringConfigItem sessionRemoved = new StringConfigItem("session-removed", "Removed %s's session", "session-removed");
+        public static final StringConfigItem configReloaded = new StringConfigItem("config-reloaded", "Config reloaded", "config-reloaded");
 
         public Language() {
             super(ImmutableList.of(tooLongToLogIn, registrationRequired, logIn, wrongPassword, unmatchingPassword, alredyRegistered,
-                    alredyLoggedIn, alredyLoggedOut, refreshAuthCommandSuggestion1, refreshAuthCommandSuggestion2,
-                    refreshAuthCommandSuggestion3, logInSuccesful, logOutSuccesful, cacheCleared, userRemoved, passwordChanged,
-                    globalPasswordChanged, requirementUnchanged, requirementSet), "language");
+                    alredyLoggedIn, alredyLoggedOut, suggestRefreshAuthCommand, refreshAuthCommandSuggestion1,
+                    refreshAuthCommandSuggestion2, refreshAuthCommandSuggestion3, logInSuccesful, logOutSuccesful, cacheCleared,
+                    userRemoved, passwordChanged, globalPasswordChanged, requirementUnchanged, requirementSet, configReloaded), "language");
         }
     }
 
     public static class Debug extends ConfigItemGroup {
         public static final BooleanConfigItem consoleAuthAnnounce = new BooleanConfigItem("announce-auth-console", false, "announce-auth-console");
+        public static final BooleanConfigItem logInAnnounceAttempt = new BooleanConfigItem("announce-log-in-attempt", false, "announce-log-in-attempt");
+        public static final BooleanConfigItem mojangAccountOutput = new BooleanConfigItem("log-mojang-account", false, "log-mojang-account");
 
         private Debug() {
-            super(of(consoleAuthAnnounce), "debug");
+            super(of(consoleAuthAnnounce, logInAnnounceAttempt, mojangAccountOutput), "debug");
         }
     }
 }

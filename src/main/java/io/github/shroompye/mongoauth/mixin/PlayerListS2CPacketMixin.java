@@ -14,6 +14,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 
 @Mixin(PlayerListS2CPacket.class)
 public class PlayerListS2CPacketMixin {
@@ -24,7 +25,7 @@ public class PlayerListS2CPacketMixin {
         if (action == PlayerListS2CPacket.Action.ADD_PLAYER && !MongoAuthConfig.Privacy.showInPlayerList.getValue()) {
             entries.removeIf(entry -> {
                 AuthData authData = MongoAuth.playerCache.getOrCreate(entry.getProfile().getId());
-                return !authData.authenticated();
+                return !authData.authenticated() && !MongoAuth.onlineUsernames.contains(entry.getProfile().getName().toLowerCase(Locale.ROOT));
             });
         }
     }
@@ -34,7 +35,7 @@ public class PlayerListS2CPacketMixin {
         if (action == PlayerListS2CPacket.Action.ADD_PLAYER && !MongoAuthConfig.Privacy.showInPlayerList.getValue()) {
             entries.removeIf(entry -> {
                 AuthData authData = MongoAuth.playerCache.getOrCreate(entry.getProfile().getId());
-                return !authData.authenticated();
+                return !authData.authenticated() && !MongoAuth.onlineUsernames.contains(entry.getProfile().getName().toLowerCase(Locale.ROOT));
             });
         }
     }

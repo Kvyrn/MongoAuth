@@ -25,15 +25,39 @@ public class MongoAuthMainCommand {
                 .then(literal("clearCache").executes(MongoAuthMainCommand::clearCache))
                 .then(literal("manageUser")
                         .then(literal("remove").then(argument("target", GameProfileArgumentType.gameProfile()).executes(MongoAuthMainCommand::removeUser)))
-                        .then(literal("changePassword").then(argument("target", GameProfileArgumentType.gameProfile()).then(argument("password", StringArgumentType.word()).executes(MongoAuthMainCommand::changPassword)))))
+                        .then(literal("changePassword").then(argument("target", GameProfileArgumentType.gameProfile()).then(argument("password", StringArgumentType.word()).executes(MongoAuthMainCommand::changPassword))))
+                        .then(literal("removeSession").then(argument("target", GameProfileArgumentType.gameProfile()).executes(MongoAuthMainCommand::removeSession))))
                 .then(literal("setGlobalPassword").then(argument("password", StringArgumentType.word()).then(argument("verifyPassword", StringArgumentType.word()).executes(MongoAuthMainCommand::setGlobalPassword))))
                 .then(literal("setGlobalPasswordRequrement").then(argument("value", BoolArgumentType.bool()).executes(MongoAuthMainCommand::setGlobalPasswordRequred)))
+                .then(literal("reloadConfig").executes(MongoAuthMainCommand::reloadConfig))
         );
+    }
+
+    private static int reloadConfig(CommandContext<ServerCommandSource> context) {
+        MongoAuth.CONFIG.readConfigFromFile();
+        context.getSource().sendFeedback(new LiteralText(Language.configReloaded.getValue()), true);
+        return 1;
+    }
+
+    private static int removeSession(CommandContext<ServerCommandSource> ctx) throws CommandSyntaxException {
+        Collection<GameProfile> targets = GameProfileArgumentType.getProfileArgument(ctx, "target");
+        for (GameProfile profile : targets) {
+            boolean exists = MongoAuth.playerCache.dataExists(profile.getId(), false);
+            if (exists) {
+                MongoAuth.playerCache.getOrCreate(profile.getId()).removeSession();
+                ctx.getSource().sendFeedback(new LiteralText(Language.sessionRemoved.getValue().formatted(profile.getName())), true);
+            } else {
+                ctx.getSource().sendError(new LiteralText(Language.userInexistent.getValue().formatted(profile.getName())));
+            }
+        }
+        return targets.size();
     }
 
     private static int setGlobalPasswordRequred(CommandContext<ServerCommandSource> context) {
         boolean value = BoolArgumentType.getBool(context, "value");
         if (MongoAuthConfig.AuthConfig.passwordRegister.getValue() == value) {
+            MongoAuthConfig.AuthConfig.passwordRegister.setValue(value);
+            MongoAuth.CONFIG.saveConfigToFile();
             context.getSource().sendError(new LiteralText(Language.requirementUnchanged.getValue().formatted(value)));
             return 0;
         } else {

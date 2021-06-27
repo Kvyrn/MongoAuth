@@ -14,48 +14,52 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.util.Locale;
+
+import static io.github.shroompye.mongoauth.MongoAuth.optionalyHide;
+
 @Mixin(PlayerManager.class)
 public class PlayerManagerMixin {
-    @Inject(method = "onPlayerConnect", at = @At("HEAD"))
+    @Inject(method = "onPlayerConnect", at = @At("TAIL"))
     private void onPlayerConnect(ClientConnection connection, ServerPlayerEntity player, CallbackInfo ci) {
-        MongoAuth.loadAuthPlayer(player);
-        if (MongoAuth.onlineUsernames.contains(player.getGameProfile().getName())) return;
-        AuthData authData = MongoAuth.playerCache.getOrCreate(player.getUuid());
-        if (!MongoAuthConfig.AuthConfig.requreAccount.getValue() && !authData.registered()) {
-            ((AuthenticationPlayer) player).sientAuth();
-            return;
+        try {
+            player.requestRespawn();
+            MongoAuth.loadAuthPlayer(player);
+            if (MongoAuth.onlineUsernames.contains(player.getGameProfile().getName().toLowerCase(Locale.ROOT))) {
+                ((AuthenticationPlayer)player).sientAuth();
+                return;
+            }
+            AuthData authData = MongoAuth.playerCache.getOrCreate(player.getUuid());
+            if (!MongoAuthConfig.AuthConfig.requreAccount.getValue() && !authData.registered()) {
+                ((AuthenticationPlayer) player).sientAuth();
+                return;
+            }
+            String ip = connection.getAddress().toString().split(":")[0];
+            if (authData.hasValidSession(ip)) {
+                ((AuthenticationPlayer)player).sientAuth();
+                authData.makeSession(ip);
+                return;
+            }
+            boolean leftUnathenticated = authData.didLeftUnathenticated();
+            authData.setLeftUnathenticated(true);
+            if (!leftUnathenticated) {
+                optionalyHide(player);
+            }
+            ((AuthenticationPlayer) player).setAuthenticated(false);
+            player.sendMessage(new LiteralText(authData.registered() ? MongoAuthConfig.Language.logIn.getValue() : MongoAuthConfig.Language.registrationRequired.getValue()).styled(style -> style.withColor(Formatting.DARK_PURPLE).withBold(true)), false);
+            MongoAuth.saveAuthPlayer(player);
+        } catch (Exception e) {
+            MongoAuth.LOGGER.error("Player logging in", e);
+            throw e;
         }
-        String ip = connection.getAddress().toString().split(":")[0];
-        if (authData.hasValidSession(ip)) {
-            authData.makeSession(ip);
-            return;
-        }
-        boolean leftUnathenticated = authData.didLeftUnathenticated();
-        authData.setLeftUnathenticated(true);
-        if (!leftUnathenticated) {
-            optionalyHide(player);
-        }
-        ((AuthenticationPlayer) player).setAuthenticated(false);
-        player.sendMessage(new LiteralText(authData.registered() ? MongoAuthConfig.Language.logIn.getValue() : MongoAuthConfig.Language.registrationRequired.getValue()).styled(style -> style.withColor(Formatting.DARK_PURPLE).withBold(true)), false);
-        MongoAuth.saveAuthPlayer(player);
     }
 
-    private void optionalyHide(ServerPlayerEntity player) {
-        AuthenticationPlayer authPlayer = (AuthenticationPlayer) player;
-        if (MongoAuthConfig.Privacy.hidePosition.getValue()) {
-            authPlayer.setAuthPos(player.getPos());
-            player.requestTeleport(0.5d, MongoAuthConfig.Privacy.hiddenYLevel.getValue(), 0.5d);
-            if (player.hasVehicle()) {
-                player.getRootVehicle().setNoGravity(true);
-                player.getRootVehicle().setInvulnerable(true);
-            }
-            player.setInvulnerable(true);
-            player.setNoGravity(true);
-            player.setInvisible(true);
+    @Inject(method = "remove", at = @At("HEAD"))
+    private void onPlayerLeave(ServerPlayerEntity player, CallbackInfo ci) {
+        AuthData data = MongoAuth.playerCache.getOrCreate(player.getUuid());
+        if (data.authenticated()) {
+            data.makeSession(player.networkHandler.connection.getAddress().toString().split(":")[0]);
         }
-        if (MongoAuthConfig.Privacy.hideInventory.getValue()) {
-            MongoAuth.storeInv(player);
-            ((PlayerEntityAccessor) player).getInventory().clear();
-        }
+        MongoAuth.playerCache.save(data);
     }
 }

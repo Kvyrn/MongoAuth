@@ -8,6 +8,7 @@ import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import io.github.shroompye.mongoauth.MongoAuth;
 import io.github.shroompye.mongoauth.config.MongoAuthConfig;
 import io.github.shroompye.mongoauth.util.AuthData;
+import io.github.shroompye.mongoauth.util.AuthenticationPlayer;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.LiteralText;
 
@@ -39,5 +40,8 @@ public class RegisterCommand {
         if (!password.equals(verifyPassword)) throw UNMATCHING_PASSWORD.create();
 
         data.setPassword(password);
+        ((AuthenticationPlayer)context.getSource().getPlayer()).setAuthenticated(true);
+        data.setLeftUnathenticated(false);
+        MongoAuth.playerCache.save(data);
     }
 }

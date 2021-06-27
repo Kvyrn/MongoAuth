@@ -6,6 +6,7 @@ import com.oroarmor.config.ConfigItem;
 import net.minecraft.util.Formatting;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Locale;
 import java.util.function.Consumer;
 
 public class FormattingConfigItem extends ConfigItem<Formatting> {
@@ -20,7 +21,7 @@ public class FormattingConfigItem extends ConfigItem<Formatting> {
 
     @Override
     public void fromJson(JsonElement element) {
-        this.value = Formatting.valueOf(element.getAsString());
+        this.value = Formatting.valueOf(element.getAsString().toUpperCase(Locale.ROOT));
     }
 
     @Override

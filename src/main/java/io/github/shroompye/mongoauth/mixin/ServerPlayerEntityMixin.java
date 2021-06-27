@@ -5,6 +5,7 @@ import io.github.shroompye.mongoauth.MongoAuth;
 import io.github.shroompye.mongoauth.config.MongoAuthConfig;
 import io.github.shroompye.mongoauth.util.AuthData;
 import io.github.shroompye.mongoauth.util.AuthenticationPlayer;
+import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.packet.s2c.play.PlayerListS2CPacket;
 import net.minecraft.server.MinecraftServer;
@@ -27,6 +28,8 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import java.util.Locale;
+
 @Mixin(ServerPlayerEntity.class)
 public abstract class ServerPlayerEntityMixin extends PlayerEntity implements AuthenticationPlayer {
     @Shadow
@@ -37,7 +40,7 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Au
     @Unique
     private boolean authenticated = false;
     @Unique
-    private Vec3d authPos = null;
+    private Vec3d authPos = Vec3d.ZERO;
     @Unique
     private int kickTimer = MongoAuthConfig.AuthConfig.kickTimer.getValue() * 20;
 
@@ -66,20 +69,28 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Au
             MongoAuth.LOGGER.info("[" + MongoAuth.NAME + "] %s authenticated".formatted(this.getGameProfile().getName()));
         }
         if (MongoAuthConfig.Privacy.hideInventory.getValue()) MongoAuth.restoreInv(asPlayer());
+        if (this.hasVehicle()) {
+            this.getRootVehicle().setNoGravity(false);
+            this.getRootVehicle().setInvulnerable(false);
+        }
+        this.setInvulnerable(false);
+        this.setNoGravity(false);
+        this.setInvisible(false);
         if (MongoAuthConfig.Privacy.hidePosition.getValue()) {
             this.teleport(authPos.x, authPos.y, authPos.z);
-            if (this.hasVehicle()) {
-                this.getRootVehicle().setNoGravity(false);
-                this.getRootVehicle().setInvulnerable(false);
-            }
-            this.setInvulnerable(false);
-            this.setNoGravity(false);
-            this.setInvisible(false);
         }
-        if (!MongoAuthConfig.Privacy.showInPlayerList.getValue())
+        if (!MongoAuthConfig.Privacy.showInPlayerList.getValue()) {
             for (ServerPlayerEntity other : this.server.getPlayerManager().getPlayerList()) {
                 other.networkHandler.sendPacket(new PlayerListS2CPacket(PlayerListS2CPacket.Action.ADD_PLAYER, asPlayer()));
             }
+        } else {
+            for (ServerPlayerEntity other : this.server.getPlayerManager().getPlayerList()) {
+                other.networkHandler.sendPacket(new PlayerListS2CPacket(PlayerListS2CPacket.Action.UPDATE_DISPLAY_NAME, asPlayer()));
+            }
+        }
+        if (MongoAuthConfig.Debug.consoleAuthAnnounce.getValue()) {
+            MongoAuth.logNamed(this.getGameProfile().getName() + " authenticated");
+        }
     }
 
     @Override
@@ -94,7 +105,7 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Au
 
     @Inject(method = "getPlayerListName", at = @At("TAIL"), cancellable = true)
     private void getPlayerListName(CallbackInfoReturnable<Text> cir) {
-        if (!isAuthenticated()) {
+        if (MongoAuthConfig.Privacy.showInPlayerList.getValue() && !isAuthenticated() && !MongoAuth.onlineUsernames.contains(this.getGameProfile().getName().toLowerCase(Locale.ROOT))) {
             Text returnV = cir.getReturnValue();
             Text displayName = getDisplayName();
             cir.setReturnValue((returnV == null ? displayName : returnV).copy().formatted(MongoAuthConfig.Privacy.playerListColor.getValue()));
@@ -108,6 +119,13 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Au
             if (kickTimer <= 0) {
                 this.networkHandler.disconnect(new LiteralText(MongoAuthConfig.Language.tooLongToLogIn.getValue()).styled(style -> style.withColor(Formatting.RED)));
             }
+        }
+    }
+
+    @Inject(method = "isInvulnerableTo", at = @At("HEAD"), cancellable = true)
+    private void isInvulnerableTo(DamageSource damageSource, CallbackInfoReturnable<Boolean> cir) {
+        if (!isAuthenticated()) {
+            cir.setReturnValue(true);
         }
     }
 
@@ -128,9 +146,10 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Au
     @Override
     public Document save() {
         Document document = new Document();
-        document.put("x", authPos.x);
-        document.put("y", authPos.y);
-        document.put("z", authPos.z);
+        Vec3d pos = authPos == null ? this.getPos() : authPos;
+        document.put("x", pos.x);
+        document.put("y", pos.y);
+        document.put("z", pos.z);
         return document;
     }
 
