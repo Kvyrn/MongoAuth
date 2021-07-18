@@ -68,7 +68,7 @@ public class ServerPlayNetworkHandlerMixin {
 
     @Inject(method = "handleMessage", cancellable = true, at = @At(value = "INVOKE", target = "Lnet/minecraft/server/network/ServerPlayerEntity;updateLastActionTime()V", shift = At.Shift.AFTER))
     private void handleMessage(TextStream.Message message, CallbackInfo ci) {
-        if (!MongoAuthConfig.PlayerActions.unauthenticatedChatting.getValue() && !authenticated(player) && !message.getRaw().startsWith("/login") && !message.getRaw().startsWith("/register") && !message.getRaw().startsWith("/refreshauth")) {
+        if (!MongoAuthConfig.config.playerActions.allowChatting && !authenticated(player) && !message.getRaw().startsWith("/login") && !message.getRaw().startsWith("/register") && !message.getRaw().startsWith("/refreshauth")) {
             ci.cancel();
         }
     }

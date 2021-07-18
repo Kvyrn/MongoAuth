@@ -42,7 +42,7 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Au
     @Unique
     private Vec3d authPos = Vec3d.ZERO;
     @Unique
-    private int kickTimer = MongoAuthConfig.AuthConfig.kickTimer.getValue() * 20;
+    private int kickTimer = MongoAuthConfig.config.auth().kickTime * 20;
 
     private ServerPlayerEntityMixin(World world, BlockPos pos, float yaw, GameProfile profile) {
         super(world, pos, yaw, profile);
@@ -58,17 +58,14 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Au
         this.authenticated = authenticated;
         getAuthData().setAuthenticated(authenticated);
         if (!authenticated) {
-            kickTimer = MongoAuthConfig.AuthConfig.kickTimer.getValue() * 20;
+            kickTimer = MongoAuthConfig.config.auth().kickTime * 20;
         } else {
             onAuthenticated();
         }
     }
 
     private void onAuthenticated() {
-        if (MongoAuthConfig.Debug.consoleAuthAnnounce.getValue()) {
-            MongoAuth.LOGGER.info("[" + MongoAuth.NAME + "] %s authenticated".formatted(this.getGameProfile().getName()));
-        }
-        if (MongoAuthConfig.Privacy.hideInventory.getValue()) MongoAuth.restoreInv(asPlayer());
+        if (MongoAuthConfig.config.privacy.hideInventory) MongoAuth.restoreInv(asPlayer());
         if (this.hasVehicle()) {
             this.getRootVehicle().setNoGravity(false);
             this.getRootVehicle().setInvulnerable(false);
@@ -76,10 +73,10 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Au
         this.setInvulnerable(false);
         this.setNoGravity(false);
         this.setInvisible(false);
-        if (MongoAuthConfig.Privacy.hidePosition.getValue()) {
+        if (MongoAuthConfig.config.privacy.hidePosition) {
             this.teleport(authPos.x, authPos.y, authPos.z);
         }
-        if (!MongoAuthConfig.Privacy.showInPlayerList.getValue()) {
+        if (!MongoAuthConfig.config.privacy.showInPlayerList) {
             for (ServerPlayerEntity other : this.server.getPlayerManager().getPlayerList()) {
                 other.networkHandler.sendPacket(new PlayerListS2CPacket(PlayerListS2CPacket.Action.ADD_PLAYER, asPlayer()));
             }
@@ -88,7 +85,7 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Au
                 other.networkHandler.sendPacket(new PlayerListS2CPacket(PlayerListS2CPacket.Action.UPDATE_DISPLAY_NAME, asPlayer()));
             }
         }
-        if (MongoAuthConfig.Debug.consoleAuthAnnounce.getValue()) {
+        if (MongoAuthConfig.config.debug.announceAuthConsole) {
             MongoAuth.logNamed(this.getGameProfile().getName() + " authenticated");
         }
     }
@@ -105,10 +102,10 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Au
 
     @Inject(method = "getPlayerListName", at = @At("TAIL"), cancellable = true)
     private void getPlayerListName(CallbackInfoReturnable<Text> cir) {
-        if (MongoAuthConfig.Privacy.showInPlayerList.getValue() && !isAuthenticated() && !MongoAuth.onlineUsernames.contains(this.getGameProfile().getName().toLowerCase(Locale.ROOT))) {
+        if (MongoAuthConfig.config.privacy.showInPlayerList && !isAuthenticated() && !MongoAuth.onlineUsernames.contains(this.getGameProfile().getName().toLowerCase(Locale.ROOT))) {
             Text returnV = cir.getReturnValue();
             Text displayName = getDisplayName();
-            cir.setReturnValue((returnV == null ? displayName : returnV).copy().formatted(MongoAuthConfig.Privacy.playerListColor.getValue()));
+            cir.setReturnValue((returnV == null ? displayName : returnV).copy().formatted(MongoAuthConfig.config.privacy.playerListColor));
         }
     }
 
@@ -117,7 +114,7 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Au
         if (!isAuthenticated()) {
             if (kickTimer > 0) kickTimer--;
             if (kickTimer <= 0) {
-                this.networkHandler.disconnect(new LiteralText(MongoAuthConfig.Language.tooLongToLogIn.getValue()).styled(style -> style.withColor(Formatting.RED)));
+                this.networkHandler.disconnect(new LiteralText(MongoAuthConfig.config.language.tooLongToLogIn).styled(style -> style.withColor(Formatting.RED)));
             }
         }
     }

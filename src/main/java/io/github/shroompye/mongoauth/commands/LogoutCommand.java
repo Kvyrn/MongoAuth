@@ -10,7 +10,7 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.LiteralText;
 
 public class LogoutCommand {
-    public static final SimpleCommandExceptionType NOT_LOGGED_IN = new SimpleCommandExceptionType(new LiteralText(MongoAuthConfig.Language.alredyLoggedOut.getValue()));
+    public static final SimpleCommandExceptionType NOT_LOGGED_IN = new SimpleCommandExceptionType(new LiteralText(MongoAuthConfig.config.language.alredyLoggedOut));
 
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(CommandManager.literal("logout").executes(context -> {

@@ -1,6 +1,5 @@
 package io.github.shroompye.mongoauth.mixin;
 
-import com.google.gson.Gson;
 import com.mojang.authlib.GameProfile;
 import io.github.shroompye.mongoauth.MongoAuth;
 import io.github.shroompye.mongoauth.config.MongoAuthConfig;
@@ -22,8 +21,6 @@ import java.util.regex.Pattern;
 
 @Mixin(ServerLoginNetworkHandler.class)
 public class ServerLoginNetworkHandlerMixin {
-    private static final Gson GSON = new Gson();
-
     @Shadow
     ServerLoginNetworkHandler.State state;
     @Shadow
@@ -39,9 +36,9 @@ public class ServerLoginNetworkHandlerMixin {
             cancellable = true
     )
     private void onHello(LoginHelloC2SPacket packet, CallbackInfo ci) {
-        if (MongoAuthConfig.Debug.logInAnnounceAttempt.getValue())
+        if (MongoAuthConfig.config.debug.announceLogInAttempt)
             MongoAuth.logNamed(packet.getProfile().getName() + " is trying to log in");
-        if (MongoAuthConfig.AuthConfig.mojangLogin.getValue()) {
+        if (MongoAuthConfig.config.auth().doMojangLogin) {
             try {
                 String playername = packet.getProfile().getName().toLowerCase();
                 Pattern pattern = Pattern.compile("^[a-z0-9_]{3,16}$");
@@ -52,7 +49,7 @@ public class ServerLoginNetworkHandlerMixin {
 
                     this.profile = packet.getProfile();
                     ci.cancel();
-                    if (MongoAuthConfig.Debug.mojangAccountOutput.getValue())
+                    if (MongoAuthConfig.config.debug.logMojangAccount)
                         MongoAuth.logNamed(packet.getProfile().getName() + " doesn't have a mojang account");
                 } else if (!MongoAuth.onlineUsernames.contains(playername)) {
                     // Checking account status from API
@@ -70,7 +67,7 @@ public class ServerLoginNetworkHandlerMixin {
                         // Caches the request
                         MongoAuth.onlineUsernames.add(playername);
                         // Authentication continues in original method
-                        if (MongoAuthConfig.Debug.mojangAccountOutput.getValue())
+                        if (MongoAuthConfig.config.debug.logMojangAccount)
                             MongoAuth.logNamed(packet.getProfile().getName() + " has a mojang account");
                     } else if (response == HttpURLConnection.HTTP_NO_CONTENT) {
                         // Player doesn't have a Mojang account
@@ -79,7 +76,7 @@ public class ServerLoginNetworkHandlerMixin {
 
                         this.profile = packet.getProfile();
                         ci.cancel();
-                        if (MongoAuthConfig.Debug.mojangAccountOutput.getValue())
+                        if (MongoAuthConfig.config.debug.logMojangAccount)
                             MongoAuth.logNamed(packet.getProfile().getName() + " doesn't have a mojang account");
                     }
                 }

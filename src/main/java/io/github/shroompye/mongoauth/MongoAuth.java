@@ -28,24 +28,25 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bson.Document;
 import org.bson.conversions.Bson;
+import org.spongepowered.configurate.CommentedConfigurationNode;
+import org.spongepowered.configurate.ConfigurateException;
+import org.spongepowered.configurate.hocon.HoconConfigurationLoader;
 
+import javax.print.attribute.standard.MediaSize;
 import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
-import static io.github.shroompye.mongoauth.config.MongoAuthConfig.DatabaseInfo;
-
-@SuppressWarnings("FieldCanBeLocal")
 public class MongoAuth implements ModInitializer {
     public static final String modid = "mongo-auth";
-    public static final MongoAuthConfig CONFIG = new MongoAuthConfig();
     public static final Logger LOGGER = LogManager.getLogger();
     public static AuthDataDatabaseAccess playerCache;
     public static GlobalsDatabaseAccessor globals;
     public static final LinkedList<String> onlineUsernames = new LinkedList<>();
     public static String NAME = "";
 
+    @SuppressWarnings("FieldCanBeLocal")
     private static MongoClient client;
     private static MongoDatabase database;
     private static MongoCollection<Document> authCollection;
@@ -55,8 +56,7 @@ public class MongoAuth implements ModInitializer {
     @Override
     public void onInitialize() {
         FabricLoader.getInstance().getModContainer(modid).ifPresent(modContainer -> NAME = modContainer.getMetadata().getName());
-        CONFIG.readConfigFromFile();
-        CONFIG.saveConfigToFile();
+        MongoAuthConfig.load();
 
         ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
             if (((AuthenticationPlayer) oldPlayer).isAuthenticated()) {
@@ -64,9 +64,6 @@ public class MongoAuth implements ModInitializer {
             } else {
                 try {
                     //TODO: player respawns at spawn point
-                    AuthenticationPlayer authNewPlayer = (AuthenticationPlayer) newPlayer;
-                    authNewPlayer.setAuthPos(newPlayer.getPos());
-                    saveAuthPlayer(newPlayer);
                     optionalyHideInvless(newPlayer);
                 } catch (Exception e) {
                     logNamedError("Respawn unauth", e);
@@ -93,10 +90,10 @@ public class MongoAuth implements ModInitializer {
     }
 
     private static void prepDB() {
-        String[] split = DatabaseInfo.address.getValue().split(":");
+        String[] split = MongoAuthConfig.config.databaseInfo.address.split(":");
         int port = split.length < 2 ? 27017 : Integer.parseInt(split[1]);
         String address = split[0];
-        MongoCredential credential = MongoCredential.createCredential(DatabaseInfo.username.getValue(), DatabaseInfo.userSourceDB.getValue(), DatabaseInfo.password.getValue().toCharArray());
+        MongoCredential credential = MongoCredential.createCredential(MongoAuthConfig.config.databaseInfo.username, MongoAuthConfig.config.databaseInfo.userSourceDatabase, MongoAuthConfig.config.databaseInfo.password.toCharArray());
         MongoClientSettings settings = MongoClientSettings.builder()
                 .credential(credential)
                 .applyToClusterSettings(builder -> builder.hosts(Collections.singletonList(new ServerAddress(address, port))))
@@ -104,7 +101,7 @@ public class MongoAuth implements ModInitializer {
         client = MongoClients.create(settings);
 
         try {
-            database = client.getDatabase(DatabaseInfo.database.getValue());
+            database = client.getDatabase(MongoAuthConfig.config.databaseInfo.database);
         } catch (IllegalArgumentException e) {
             LOGGER.fatal("[" + NAME + "] Invalid MongoDB database!", e);
             FabricGuiEntry.displayCriticalError(e, true);
@@ -125,10 +122,10 @@ public class MongoAuth implements ModInitializer {
         }
 
         try {
-            serverSpecificCollection = database.getCollection("server-" + DatabaseInfo.serverId.getValue());
+            serverSpecificCollection = database.getCollection("server-" + MongoAuthConfig.config.databaseInfo.serverId);
         } catch (IllegalArgumentException e) {
-            database.createCollection("server-" + DatabaseInfo.serverId.getValue());
-            serverSpecificCollection = database.getCollection("server-" + DatabaseInfo.serverId.getValue());
+            database.createCollection("server-" + MongoAuthConfig.config.databaseInfo.serverId);
+            serverSpecificCollection = database.getCollection("server-" + MongoAuthConfig.config.databaseInfo.serverId);
         }
     }
 
@@ -225,7 +222,7 @@ public class MongoAuth implements ModInitializer {
     }
 
     public static boolean playerForcedOffline(String name) {
-        for (String s : MongoAuthConfig.AuthConfig.offlineNames.getValue()) {
+        for (String s : MongoAuthConfig.config.auth().offlineNames) {
             if (name.equalsIgnoreCase(s)) return true;
         }
         return false;
@@ -233,7 +230,7 @@ public class MongoAuth implements ModInitializer {
 
     public static void optionalyHide(ServerPlayerEntity player) {
         optionalyHideInvless(player);
-        if (MongoAuthConfig.Privacy.hideInventory.getValue()) {
+        if (MongoAuthConfig.config.privacy.hideInventory) {
             MongoAuth.storeInv(player);
             ((PlayerEntityAccessor) player).getInventory().clear();
         }
@@ -248,9 +245,10 @@ public class MongoAuth implements ModInitializer {
         player.setInvulnerable(true);
         player.setNoGravity(true);
         player.setInvisible(true);
-        if (MongoAuthConfig.Privacy.hidePosition.getValue()) {
+        if (MongoAuthConfig.config.privacy.hidePosition) {
             authPlayer.setAuthPos(player.getPos());
-            player.requestTeleport(0.5d, MongoAuthConfig.Privacy.hiddenYLevel.getValue(), 0.5d);
+            saveAuthPlayer(player);
+            player.requestTeleport(0.5d, MongoAuthConfig.config.privacy.hiddenYLevel, 0.5d);
         }
     }
 }

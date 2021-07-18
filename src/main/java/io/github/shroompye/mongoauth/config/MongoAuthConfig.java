@@ -1,145 +1,159 @@
 package io.github.shroompye.mongoauth.config;
 
-import com.google.common.collect.ImmutableList;
-import com.oroarmor.config.*;
 import io.github.shroompye.mongoauth.MongoAuth;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.util.Formatting;
+import org.spongepowered.configurate.CommentedConfigurationNode;
+import org.spongepowered.configurate.ConfigurateException;
+import org.spongepowered.configurate.hocon.HoconConfigurationLoader;
+import org.spongepowered.configurate.objectmapping.ConfigSerializable;
+import org.spongepowered.configurate.objectmapping.meta.Comment;
+import org.spongepowered.configurate.serialize.SerializationException;
 
-import static com.google.common.collect.ImmutableList.of;
+import java.io.File;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 
-public class MongoAuthConfig extends Config {
-    public MongoAuthConfig() {
-        super(of(
-                new AuthConfig(),
-                new DatabaseInfo(),
-                new PlayerActions(),
-                new Privacy(),
-                new Language(),
-                new Debug()
-        ), FabricLoader.getInstance().getConfigDir().resolve("mongo-auth.json").toFile(), MongoAuth.modid);
+@ConfigSerializable
+public class MongoAuthConfig {
+    public static MongoAuthConfig config = new MongoAuthConfig();
+    private static final Path path = FabricLoader.getInstance().getConfigDir().resolve("mongo-auth.conf");
+    private static final HoconConfigurationLoader CONFIG_LOADER = HoconConfigurationLoader.builder()
+            .prettyPrinting(true)
+            .path(path)
+            .build();
+
+    public static void load() {
+        if (!path.toFile().exists()) {
+            save();
+            return;
+        }
+        CommentedConfigurationNode root;
+        try {
+            root = CONFIG_LOADER.load();
+        } catch (ConfigurateException e) {
+            MongoAuth.LOGGER.error("[" + MongoAuth.NAME + "] Error loading configuration. Default will be used.", e);
+            return;
+        }
+        MongoAuthConfig conf;
+        try {
+            conf = root.get(MongoAuthConfig.class);
+        } catch (SerializationException e) {
+            MongoAuth.LOGGER.error("[" + MongoAuth.NAME + "] Error deserializing configuration. Default will be used.", e);
+            return;
+        }
+        config = conf;
     }
 
-    /**
-     * Authentication settings.
-     */
-    public static class AuthConfig extends ConfigItemGroup {
-        /**
-         * Requires account to register. Disable this if only requrement is to have online players in online mode and not have offline player authentication.
-         */
-        public static final BooleanConfigItem requreAccount = new BooleanConfigItem("require-registration", true, "require-registration");
-        /**
-         * First try to authenticate with mojang, fallback to offline. Requires server in online mode.
-         */
-        public static final BooleanConfigItem mojangLogin = new BooleanConfigItem("optional-mojang-login", true, "optional-mojang-login");
-        /**
-         * Require a master password to register.
-         */
-        public static final BooleanConfigItem passwordRegister = new BooleanConfigItem("require-password-to-register", false, "require-password-to-register");
-        /**
-         * Usernames forced into offline mode, regardless of mojang account exisrtance.
-         */
-        public static final ArrayConfigItem<String> offlineNames = new ArrayConfigItem<>("forced-offline-names", new String[]{""}, "forced-offline-names");
-        /**
-         * Below 1 is disabled
-         */
-        public static final IntegerConfigItem sessionTime = new IntegerConfigItem("session-time", 60, "session-time-sec");
-        /**
-         * Kick after some time in unauthenticated state
-         */
-        public static final IntegerConfigItem kickTimer = new IntegerConfigItem("authentication-time", 20, "authentication-time");
-
-        public AuthConfig() {
-            super(of(requreAccount, mojangLogin, passwordRegister, offlineNames, sessionTime, kickTimer), "auth");
+    public static void save() {
+        CommentedConfigurationNode root = null;
+        try {
+            root = CONFIG_LOADER.load();
+        } catch (ConfigurateException e) {
+            MongoAuth.LOGGER.error("[" + MongoAuth.NAME + "] Error saving configuration.", e);
+        }
+        try {
+            root.set(MongoAuthConfig.class, config);
+        } catch (SerializationException e) {
+            MongoAuth.LOGGER.error("[" + MongoAuth.NAME + "] Error serializing configuration.", e);
+            return;
+        }
+        try {
+            CONFIG_LOADER.save(root);
+        } catch (ConfigurateException e) {
+            MongoAuth.LOGGER.error("[" + MongoAuth.NAME + "] Error saving configuration.", e);
         }
     }
 
-    /**
-     * Database settings/credentials
-     */
-    public static class DatabaseInfo extends ConfigItemGroup {
-        public static final StringConfigItem address = new StringConfigItem("address", "localhost", "address");
-        public static final StringConfigItem username = new StringConfigItem("username", "", "username");
-        public static final StringConfigItem userSourceDB = new StringConfigItem("user-source-database", "", "user-source-database");
-        public static final StringConfigItem password = new StringConfigItem("password", "", "password");
-        public static final StringConfigItem database = new StringConfigItem("database", "MinecraftAuth", "database");
-        /**
-         * Used to identify server specific info.
-         */
-        public static final StringConfigItem serverId = new StringConfigItem("server-id", "server", "server-id-required");
-
-        public DatabaseInfo() {
-            super(of(address, username, userSourceDB, password, database, serverId), "database");
-        }
+    private AuthConfigSection auth = new AuthConfigSection();
+    public AuthConfigSection auth() {
+        return auth;
     }
 
-    /**
-     * Actions the unauthenticated player is allowed to make.
-     */
-    public static class PlayerActions extends ConfigItemGroup {
-        public static final BooleanConfigItem unauthenticatedChatting = new BooleanConfigItem("allow-chatting", false, "allow-chatting");
-
-        private PlayerActions() {
-            super(of(unauthenticatedChatting), "playerActions");
-        }
+    @ConfigSerializable
+    public static class AuthConfigSection {
+        @Comment("When disabled, new players do not need to register, but won't be authenticated.")
+        public boolean requireRegistration = true;
+        @Comment("When enabled, authentication is first attempted with mojang.")
+        public boolean doMojangLogin = true;
+        @Comment("When enabled, players need a password to register.")
+        public boolean requrePasswordToRegister = false;
+        @Comment("Players with names in this list will never use mojang authentication.")
+        public List<String> offlineNames = new ArrayList<>();
+        @Comment("In seconds, below 1 disables sessions.")
+        public int sessionTime = 60;
+        @Comment("Time after wich unauthenticated players are kicked. In seconds.")
+        public int kickTime = 20;
     }
 
-    /**
-     * Player info hiding, such as position and inventory.
-     */
-    public static class Privacy extends ConfigItemGroup {
-        public static final BooleanConfigItem anounceAuthentication = new BooleanConfigItem("announce-authentication", false, "announce-authentication");
-        public static final BooleanConfigItem hideInventory = new BooleanConfigItem("hide-inventory", true, "hide-inventory");
-        public static final BooleanConfigItem hidePosition = new BooleanConfigItem("hide-position", true, "hide-position");
-        public static final IntegerConfigItem hiddenYLevel = new IntegerConfigItem("hidden-y-level", -55, "hidden-y-level");
-        public static final BooleanConfigItem showInPlayerList = new BooleanConfigItem("show-in-player-list", false, "show-in-player-list");
-        public static final FormattingConfigItem playerListColor = new FormattingConfigItem("player-list-color", Formatting.RESET, "player-list-color");
+    public DatabaseInfoSection databaseInfo = new DatabaseInfoSection();
 
-        private Privacy() {
-            super(of(anounceAuthentication, hideInventory, hidePosition, hiddenYLevel, showInPlayerList, playerListColor), "privacy");
-        }
+    @ConfigSerializable
+    public static class DatabaseInfoSection {
+        public String address = "localhost";
+        public String username = "";
+        public String userSourceDatabase = "";
+        public String password = "";
+        public String database = "MinecraftAuth";
+        @Comment("Identifies this server. Should be unique among all servers using the same database.")
+        public String serverId = "server";
     }
 
-    public static class Language extends ConfigItemGroup {
-        public static final StringConfigItem tooLongToLogIn = new StringConfigItem("too-long-too-log-in", "Took too long to log in", "too-long-too-log-in");
-        public static final StringConfigItem registrationRequired = new StringConfigItem("registration-required", "You are not registered! Use /register.", "registration-required");
-        public static final StringConfigItem logIn = new StringConfigItem("log-in", "Log in with /login", "log-in");
-        public static final StringConfigItem wrongPassword = new StringConfigItem("wrong-password", "Wrong password!", "wrong-password");
-        public static final StringConfigItem unmatchingPassword = new StringConfigItem("unmatching-password", "Unmatching password!", "unmatching-password");
-        public static final StringConfigItem alredyRegistered = new StringConfigItem("alredy-registered", "You are alredy registered", "alredy-registered");
-        public static final StringConfigItem alredyLoggedIn = new StringConfigItem("alredy-logged-in", "You are alredy logged in", "alredy-logged-in");
-        public static final StringConfigItem alredyLoggedOut = new StringConfigItem("alredy-logged-out", "You are alredy logged out", "alredy-logged-out");
-        public static final BooleanConfigItem suggestRefreshAuthCommand = new BooleanConfigItem("suggest-refreshauth", true, "suggest-refreshauth");
-        public static final StringConfigItem refreshAuthCommandSuggestion1 = new StringConfigItem("refreshauth-suggestion1", "If you changed your password, use ", "refreshauth-suggestion1");
-        public static final StringConfigItem refreshAuthCommandSuggestion2 = new StringConfigItem("refreshauth-suggestion2", "/refreshauth", "refreshauth-suggestion2");
-        public static final StringConfigItem refreshAuthCommandSuggestion3 = new StringConfigItem("refreshauth-suggestion3", " to update it.", "refreshauth-suggestion3");
-        public static final StringConfigItem logInSuccesful = new StringConfigItem("login-succesful", "Logged in!", "login-succesful");
-        public static final StringConfigItem logOutSuccesful = new StringConfigItem("logout-succesful", "Logged out!", "logout-succesful");
-        public static final StringConfigItem cacheCleared = new StringConfigItem("cache-cleared", "Cache cleared", "cache-cleared");
-        public static final StringConfigItem userRemoved = new StringConfigItem("user-removed", "User %s removed", "user-removed");
-        public static final StringConfigItem userInexistent = new StringConfigItem("user-inexistent", "User %s does not exist!", "user-inexistent");
-        public static final StringConfigItem passwordChanged = new StringConfigItem("password-changed", "Changed %s's password", "password-changed");
-        public static final StringConfigItem globalPasswordChanged = new StringConfigItem("global-password-changed", "Global password changed", "global-password-changed");
-        public static final StringConfigItem requirementUnchanged = new StringConfigItem("global-password-req-unchanged", "Global password requrement is alredy %s!", "global-password-req-unchanged");
-        public static final StringConfigItem requirementSet = new StringConfigItem("global-password-req-changed", "Global password requrement set to %s!", "global-password-req-changed");
-        public static final StringConfigItem sessionRemoved = new StringConfigItem("session-removed", "Removed %s's session", "session-removed");
-        public static final StringConfigItem configReloaded = new StringConfigItem("config-reloaded", "Config reloaded", "config-reloaded");
+    public PlayerActionsSection playerActions = new PlayerActionsSection();
 
-        public Language() {
-            super(ImmutableList.of(tooLongToLogIn, registrationRequired, logIn, wrongPassword, unmatchingPassword, alredyRegistered,
-                    alredyLoggedIn, alredyLoggedOut, suggestRefreshAuthCommand, refreshAuthCommandSuggestion1,
-                    refreshAuthCommandSuggestion2, refreshAuthCommandSuggestion3, logInSuccesful, logOutSuccesful, cacheCleared,
-                    userRemoved, passwordChanged, globalPasswordChanged, requirementUnchanged, requirementSet, configReloaded), "language");
-        }
+    @ConfigSerializable
+    public static class PlayerActionsSection {
+        public boolean allowChatting = false;
     }
 
-    public static class Debug extends ConfigItemGroup {
-        public static final BooleanConfigItem consoleAuthAnnounce = new BooleanConfigItem("announce-auth-console", false, "announce-auth-console");
-        public static final BooleanConfigItem logInAnnounceAttempt = new BooleanConfigItem("announce-log-in-attempt", false, "announce-log-in-attempt");
-        public static final BooleanConfigItem mojangAccountOutput = new BooleanConfigItem("log-mojang-account", false, "log-mojang-account");
+    public PrivacySection privacy = new PrivacySection();
 
-        private Debug() {
-            super(of(consoleAuthAnnounce, logInAnnounceAttempt, mojangAccountOutput), "debug");
-        }
+    @ConfigSerializable
+    public static class PrivacySection {
+        public boolean announceAuthentication = false;
+        public boolean hideInventory = true;
+        public boolean hidePosition = true;
+        public int hiddenYLevel = -50;
+        public boolean showInPlayerList = false;
+        public Formatting playerListColor = Formatting.RESET;
+    }
+
+    public LanguageSection language = new LanguageSection();
+
+    @ConfigSerializable
+    public static class LanguageSection {
+        public String tooLongToLogIn = "Took too long to log in";
+        public String registrationRequired = "You are not registered! Use /register.";
+        public String logIn = "Log in with /login";
+        public String wrongPassword = "Wrong password!";
+        public String unmatchingPassword = "Unmatching password!";
+        public String alredyRegistered = "You are alredy registered";
+        public String alredyLoggedIn = "You are alredy logged in";
+        public String alredyLoggedOut = "You are alredy logged out";
+        public boolean suggestRefreshAuthCommand = true;
+        public String refreshAuthCommandSuggestion1 = "If you changed your password, use ";
+        public String refreshAuthCommandSuggestion2 = "/refreshauth";
+        public String refreshAuthCommandSuggestion3 = " to update it.";
+        public String logInSuccesful = "Logged in!";
+        public String logOutSuccesful = "Logged out!";
+        public String cacheCleared = "Cache cleared";
+        public String userRemoved = "User %s removed";
+        public String userInexistent = "User %s does not exist!";
+        public String passwordChanged = "Changed %s's password";
+        public String globalPasswordChanged = "Global password changed";
+        public String requirementUnchanged = "Global password requrement is alredy %s!";
+        public String requirementSet = "Global password requrement set to %s!";
+        public String sessionRemoved = "Removed %s's session";
+        public String configReloaded = "Config reloaded";
+    }
+
+    public DebugSection debug = new DebugSection();
+
+    @ConfigSerializable
+    public static class DebugSection {
+        public boolean announceAuthConsole = false;
+        public boolean announceLogInAttempt = false;
+        public boolean logMojangAccount = false;
     }
 }

@@ -18,15 +18,15 @@ import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
 
 public class LoginCommand {
-    public static final SimpleCommandExceptionType ALREDY_LOGGED_IN = new SimpleCommandExceptionType(new LiteralText(MongoAuthConfig.Language.alredyLoggedIn.getValue()));
-    public static final SimpleCommandExceptionType NOT_REGISTERED = new SimpleCommandExceptionType(new LiteralText(MongoAuthConfig.Language.registrationRequired.getValue()));
+    public static final SimpleCommandExceptionType ALREDY_LOGGED_IN = new SimpleCommandExceptionType(new LiteralText(MongoAuthConfig.config.language.alredyLoggedIn));
+    public static final SimpleCommandExceptionType NOT_REGISTERED = new SimpleCommandExceptionType(new LiteralText(MongoAuthConfig.config.language.registrationRequired));
     public static final SimpleCommandExceptionType WRONG_PASSWORD_SUGGESTED = new SimpleCommandExceptionType(
-            new LiteralText(MongoAuthConfig.Language.wrongPassword.getValue())
-                    .append(new LiteralText("\n" + MongoAuthConfig.Language.refreshAuthCommandSuggestion1.getValue()))
-                    .append(new LiteralText(MongoAuthConfig.Language.refreshAuthCommandSuggestion2.getValue()).styled(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/refreshauth")).withColor(Formatting.GOLD)))
-                    .append(new LiteralText(MongoAuthConfig.Language.refreshAuthCommandSuggestion3.getValue())));
+            new LiteralText(MongoAuthConfig.config.language.wrongPassword)
+                    .append(new LiteralText("\n" + MongoAuthConfig.config.language.refreshAuthCommandSuggestion1))
+                    .append(new LiteralText(MongoAuthConfig.config.language.refreshAuthCommandSuggestion2).styled(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/refreshauth")).withColor(Formatting.GOLD)))
+                    .append(new LiteralText(MongoAuthConfig.config.language.refreshAuthCommandSuggestion3)));
     public static final SimpleCommandExceptionType WRONG_PASSWORD = new SimpleCommandExceptionType(
-            new LiteralText(MongoAuthConfig.Language.wrongPassword.getValue()));
+            new LiteralText(MongoAuthConfig.config.language.wrongPassword));
 
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(literal("login").then(argument("password", StringArgumentType.word()).executes(LoginCommand::login)));
@@ -38,7 +38,8 @@ public class LoginCommand {
             if (data.authenticated()) throw ALREDY_LOGGED_IN.create();
             if (!data.registered()) throw NOT_REGISTERED.create();
             String password = StringArgumentType.getString(context, "password");
-            if (!data.verifyPassword(password)) throw MongoAuthConfig.Language.suggestRefreshAuthCommand.getValue() ? WRONG_PASSWORD_SUGGESTED.create() : WRONG_PASSWORD.create();
+            if (!data.verifyPassword(password))
+                throw MongoAuthConfig.config.language.suggestRefreshAuthCommand ? WRONG_PASSWORD_SUGGESTED.create() : WRONG_PASSWORD.create();
             ((AuthenticationPlayer) context.getSource().getPlayer()).setAuthenticated(true);
             data.setLeftUnathenticated(false);
             MongoAuth.playerCache.save(data);

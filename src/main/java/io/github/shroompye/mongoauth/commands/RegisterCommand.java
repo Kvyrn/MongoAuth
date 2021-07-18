@@ -16,16 +16,16 @@ import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
 
 public class RegisterCommand {
-    public static final SimpleCommandExceptionType UNMATCHING_PASSWORD = new SimpleCommandExceptionType(new LiteralText(MongoAuthConfig.Language.unmatchingPassword.getValue()));
-    public static final SimpleCommandExceptionType ALREDY_REGISTERED = new SimpleCommandExceptionType(new LiteralText(MongoAuthConfig.Language.alredyRegistered.getValue()));
-    public static final SimpleCommandExceptionType WRONG_PASSWORD = new SimpleCommandExceptionType(new LiteralText(MongoAuthConfig.Language.wrongPassword.getValue()));
+    public static final SimpleCommandExceptionType UNMATCHING_PASSWORD = new SimpleCommandExceptionType(new LiteralText(MongoAuthConfig.config.language.unmatchingPassword));
+    public static final SimpleCommandExceptionType ALREDY_REGISTERED = new SimpleCommandExceptionType(new LiteralText(MongoAuthConfig.config.language.alredyRegistered));
+    public static final SimpleCommandExceptionType WRONG_PASSWORD = new SimpleCommandExceptionType(new LiteralText(MongoAuthConfig.config.language.wrongPassword));
 
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(literal("register").then(argument("password", StringArgumentType.word()).then(argument("verifyPassword", StringArgumentType.word()).executes(context -> {
             doRegister(context);
             return 1;
         }).then(argument("globalPassword", StringArgumentType.word()).executes(context -> {
-            if (MongoAuthConfig.AuthConfig.passwordRegister.getValue() && !MongoAuth.globals.verifyGlobalPassword(StringArgumentType.getString(context, "globalPassword"))) throw WRONG_PASSWORD.create();
+            if (MongoAuthConfig.config.auth().requrePasswordToRegister && !MongoAuth.globals.verifyGlobalPassword(StringArgumentType.getString(context, "globalPassword"))) throw WRONG_PASSWORD.create();
             doRegister(context);
             return 1;
         })))));

@@ -15,27 +15,26 @@ import net.minecraft.text.LiteralText;
 
 import java.util.Collection;
 
-import static io.github.shroompye.mongoauth.config.MongoAuthConfig.Language;
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
 
 public class MongoAuthMainCommand {
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(literal(MongoAuth.modid).requires(source -> source.hasPermissionLevel(3))
-                .then(literal("clearCache").executes(MongoAuthMainCommand::clearCache))
-                .then(literal("manageUser")
-                        .then(literal("remove").then(argument("target", GameProfileArgumentType.gameProfile()).executes(MongoAuthMainCommand::removeUser)))
-                        .then(literal("changePassword").then(argument("target", GameProfileArgumentType.gameProfile()).then(argument("password", StringArgumentType.word()).executes(MongoAuthMainCommand::changPassword))))
-                        .then(literal("removeSession").then(argument("target", GameProfileArgumentType.gameProfile()).executes(MongoAuthMainCommand::removeSession))))
-                .then(literal("setGlobalPassword").then(argument("password", StringArgumentType.word()).then(argument("verifyPassword", StringArgumentType.word()).executes(MongoAuthMainCommand::setGlobalPassword))))
-                .then(literal("setGlobalPasswordRequrement").then(argument("value", BoolArgumentType.bool()).executes(MongoAuthMainCommand::setGlobalPasswordRequred)))
-                .then(literal("reloadConfig").executes(MongoAuthMainCommand::reloadConfig))
+                                    .then(literal("clearCache").executes(MongoAuthMainCommand::clearCache))
+                                    .then(literal("manageUser")
+                                                  .then(literal("remove").then(argument("target", GameProfileArgumentType.gameProfile()).executes(MongoAuthMainCommand::removeUser)))
+                                                  .then(literal("changePassword").then(argument("target", GameProfileArgumentType.gameProfile()).then(argument("password", StringArgumentType.word()).executes(MongoAuthMainCommand::changPassword))))
+                                                  .then(literal("removeSession").then(argument("target", GameProfileArgumentType.gameProfile()).executes(MongoAuthMainCommand::removeSession))))
+                                    .then(literal("setGlobalPassword").then(argument("password", StringArgumentType.word()).then(argument("verifyPassword", StringArgumentType.word()).executes(MongoAuthMainCommand::setGlobalPassword))))
+                                    .then(literal("setGlobalPasswordRequrement").then(argument("value", BoolArgumentType.bool()).executes(MongoAuthMainCommand::setGlobalPasswordRequred)))
+                                    .then(literal("reloadConfig").executes(MongoAuthMainCommand::reloadConfig))
         );
     }
 
     private static int reloadConfig(CommandContext<ServerCommandSource> context) {
-        MongoAuth.CONFIG.readConfigFromFile();
-        context.getSource().sendFeedback(new LiteralText(Language.configReloaded.getValue()), true);
+        MongoAuthConfig.load();
+        context.getSource().sendFeedback(new LiteralText(MongoAuthConfig.config.language.configReloaded), true);
         return 1;
     }
 
@@ -45,9 +44,9 @@ public class MongoAuthMainCommand {
             boolean exists = MongoAuth.playerCache.dataExists(profile.getId(), false);
             if (exists) {
                 MongoAuth.playerCache.getOrCreate(profile.getId()).removeSession();
-                ctx.getSource().sendFeedback(new LiteralText(Language.sessionRemoved.getValue().formatted(profile.getName())), true);
+                ctx.getSource().sendFeedback(new LiteralText(MongoAuthConfig.config.language.sessionRemoved.formatted(profile.getName())), true);
             } else {
-                ctx.getSource().sendError(new LiteralText(Language.userInexistent.getValue().formatted(profile.getName())));
+                ctx.getSource().sendError(new LiteralText(MongoAuthConfig.config.language.userInexistent.formatted(profile.getName())));
             }
         }
         return targets.size();
@@ -55,14 +54,13 @@ public class MongoAuthMainCommand {
 
     private static int setGlobalPasswordRequred(CommandContext<ServerCommandSource> context) {
         boolean value = BoolArgumentType.getBool(context, "value");
-        if (MongoAuthConfig.AuthConfig.passwordRegister.getValue() == value) {
-            MongoAuthConfig.AuthConfig.passwordRegister.setValue(value);
-            MongoAuth.CONFIG.saveConfigToFile();
-            context.getSource().sendError(new LiteralText(Language.requirementUnchanged.getValue().formatted(value)));
+        if (MongoAuthConfig.config.auth().requrePasswordToRegister == value) {
+            context.getSource().sendError(new LiteralText(MongoAuthConfig.config.language.requirementUnchanged.formatted(value)));
             return 0;
         } else {
-            MongoAuthConfig.AuthConfig.passwordRegister.setValue(value);
-            context.getSource().sendFeedback(new LiteralText(Language.requirementSet.getValue().formatted(value)), true);
+            MongoAuthConfig.config.auth().requrePasswordToRegister = value;
+            MongoAuthConfig.save();
+            context.getSource().sendFeedback(new LiteralText(MongoAuthConfig.config.language.requirementSet.formatted(value)), true);
             return 1;
         }
     }
@@ -73,7 +71,7 @@ public class MongoAuthMainCommand {
         if (!password.equals(verifyPassword)) throw RegisterCommand.UNMATCHING_PASSWORD.create();
 
         MongoAuth.globals.setGlobalPassword(password);
-        context.getSource().sendFeedback(new LiteralText(Language.globalPasswordChanged.getValue()), true);
+        context.getSource().sendFeedback(new LiteralText(MongoAuthConfig.config.language.globalPasswordChanged), true);
         return 1;
     }
 
@@ -84,9 +82,9 @@ public class MongoAuthMainCommand {
             boolean exists = MongoAuth.playerCache.dataExists(profile.getId(), true);
             if (exists) {
                 MongoAuth.playerCache.getOrCreate(profile.getId()).setPaswordHash(passwordHash);
-                ctx.getSource().sendFeedback(new LiteralText(Language.passwordChanged.getValue().formatted(profile.getName())), true);
+                ctx.getSource().sendFeedback(new LiteralText(MongoAuthConfig.config.language.passwordChanged.formatted(profile.getName())), true);
             } else {
-                ctx.getSource().sendError(new LiteralText(Language.userInexistent.getValue().formatted(profile.getName())));
+                ctx.getSource().sendError(new LiteralText(MongoAuthConfig.config.language.userInexistent.formatted(profile.getName())));
             }
         }
         return targets.size();
@@ -95,7 +93,7 @@ public class MongoAuthMainCommand {
     private static int clearCache(CommandContext<ServerCommandSource> ctx) {
         MongoAuth.playerCache.clearCache();
         MongoAuth.onlineUsernames.clear();
-        ctx.getSource().sendFeedback(new LiteralText(Language.cacheCleared.getValue()), true);
+        ctx.getSource().sendFeedback(new LiteralText(MongoAuthConfig.config.language.cacheCleared), true);
         return 1;
     }
 
@@ -105,9 +103,9 @@ public class MongoAuthMainCommand {
             boolean exists = MongoAuth.playerCache.dataExists(profile.getId(), false);
             if (exists) {
                 MongoAuth.playerCache.deleteEntry(profile.getId());
-                ctx.getSource().sendFeedback(new LiteralText(Language.userRemoved.getValue().formatted(profile.getName())), true);
+                ctx.getSource().sendFeedback(new LiteralText(MongoAuthConfig.config.language.userRemoved.formatted(profile.getName())), true);
             } else {
-                ctx.getSource().sendError(new LiteralText(Language.userInexistent.getValue().formatted(profile.getName())));
+                ctx.getSource().sendError(new LiteralText(MongoAuthConfig.config.language.userInexistent.formatted(profile.getName())));
             }
         }
         return targets.size();

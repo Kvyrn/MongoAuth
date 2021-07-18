@@ -15,13 +15,6 @@ public class SlotMixin {
     @Inject(method = "canTakeItems(Lnet/minecraft/entity/player/PlayerEntity;)Z", at = @At(value = "HEAD"), cancellable = true)
     private void canTakeItems(PlayerEntity player, CallbackInfoReturnable<Boolean> cir) {
         if (!MongoAuth.playerCache.getOrCreate(player.getUuid()).authenticated()) {
-            ((ServerPlayerEntity)player).networkHandler.sendPacket(
-                    new ScreenHandlerSlotUpdateS2CPacket(
-                            -2,
-                            ((PlayerEntityAccessor)player).getInventory().selectedSlot,
-                            ((PlayerEntityAccessor)player).getInventory().getStack(((PlayerEntityAccessor)player).getInventory().selectedSlot))
-            );
-            //((ServerPlayerEntity)player).networkHandler.sendPacket(new ScreenHandlerSlotUpdateS2CPacket(-1, -1, ((PlayerEntityAccessor)player).getInventory().getStack(-1)));
             cir.setReturnValue(false);
         }
     }

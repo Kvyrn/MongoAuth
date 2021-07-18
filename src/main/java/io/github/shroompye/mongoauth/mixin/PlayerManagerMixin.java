@@ -30,7 +30,7 @@ public class PlayerManagerMixin {
                 return;
             }
             AuthData authData = MongoAuth.playerCache.getOrCreate(player.getUuid());
-            if (!MongoAuthConfig.AuthConfig.requreAccount.getValue() && !authData.registered()) {
+            if (!MongoAuthConfig.config.auth().requireRegistration && !authData.registered()) {
                 ((AuthenticationPlayer) player).sientAuth();
                 return;
             }
@@ -46,7 +46,7 @@ public class PlayerManagerMixin {
                 optionalyHide(player);
             }
             ((AuthenticationPlayer) player).setAuthenticated(false);
-            player.sendMessage(new LiteralText(authData.registered() ? MongoAuthConfig.Language.logIn.getValue() : MongoAuthConfig.Language.registrationRequired.getValue()).styled(style -> style.withColor(Formatting.DARK_PURPLE).withBold(true)), false);
+            player.sendMessage(new LiteralText(authData.registered() ? MongoAuthConfig.config.language.logIn : MongoAuthConfig.config.language.registrationRequired).styled(style -> style.withColor(Formatting.DARK_PURPLE).withBold(true)), false);
             MongoAuth.saveAuthPlayer(player);
         } catch (Exception e) {
             MongoAuth.LOGGER.error("Player logging in", e);

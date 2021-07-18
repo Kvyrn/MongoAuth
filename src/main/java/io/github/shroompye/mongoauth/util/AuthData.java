@@ -50,8 +50,8 @@ public class AuthData {
     }
 
     public void makeSession(String ip) {
-        if (MongoAuthConfig.AuthConfig.sessionTime.getValue() > 0) {
-            this.session = new AuthSession(MongoAuthConfig.AuthConfig.sessionTime.getValue(), ip);
+        if (MongoAuthConfig.config.auth().sessionTime > 0) {
+            this.session = new AuthSession(MongoAuthConfig.config.auth().sessionTime, ip);
         }
     }
 
