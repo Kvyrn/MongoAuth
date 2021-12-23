@@ -75,6 +75,6 @@ public class ServerPlayNetworkHandlerMixin {
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private static boolean authenticated(ServerPlayerEntity player) {
-        return MongoAuth.playerCache.getOrCreate(player.getUuid()).authenticated();
+        return MongoAuth.databaseAccess.getOrCreateAuthData(player.getUuid()).authenticated();
     }
 }

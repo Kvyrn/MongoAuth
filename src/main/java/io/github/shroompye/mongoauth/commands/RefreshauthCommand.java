@@ -9,7 +9,7 @@ import static net.minecraft.server.command.CommandManager.literal;
 public class RefreshauthCommand {
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(literal("refreshauth").executes(context -> {
-            MongoAuth.playerCache.refreshEntry(context.getSource().getPlayer().getUuid());
+            MongoAuth.databaseAccess.refreshAuthData(context.getSource().getPlayer().getUuid());
             return 1;
         }));
     }

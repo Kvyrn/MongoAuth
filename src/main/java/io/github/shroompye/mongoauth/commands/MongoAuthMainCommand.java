@@ -41,9 +41,9 @@ public class MongoAuthMainCommand {
     private static int removeSession(CommandContext<ServerCommandSource> ctx) throws CommandSyntaxException {
         Collection<GameProfile> targets = GameProfileArgumentType.getProfileArgument(ctx, "target");
         for (GameProfile profile : targets) {
-            boolean exists = MongoAuth.playerCache.dataExists(profile.getId(), false);
+            boolean exists = MongoAuth.databaseAccess.authDataExists(profile.getId(), false);
             if (exists) {
-                MongoAuth.playerCache.getOrCreate(profile.getId()).removeSession();
+                MongoAuth.databaseAccess.getOrCreateAuthData(profile.getId()).removeSession();
                 ctx.getSource().sendFeedback(new LiteralText(MongoAuthConfig.config.language.sessionRemoved.formatted(profile.getName())), true);
             } else {
                 ctx.getSource().sendError(new LiteralText(MongoAuthConfig.config.language.userInexistent.formatted(profile.getName())));
@@ -70,7 +70,7 @@ public class MongoAuthMainCommand {
         String verifyPassword = StringArgumentType.getString(context, "verifyPassword");
         if (!password.equals(verifyPassword)) throw RegisterCommand.UNMATCHING_PASSWORD.create();
 
-        MongoAuth.globals.setGlobalPassword(password);
+        MongoAuth.databaseAccess.setGlobalPassword(password);
         context.getSource().sendFeedback(new LiteralText(MongoAuthConfig.config.language.globalPasswordChanged), true);
         return 1;
     }
@@ -79,9 +79,9 @@ public class MongoAuthMainCommand {
         Collection<GameProfile> targets = GameProfileArgumentType.getProfileArgument(ctx, "target");
         String passwordHash = AuthData.createHash(StringArgumentType.getString(ctx, "password"));
         for (GameProfile profile : targets) {
-            boolean exists = MongoAuth.playerCache.dataExists(profile.getId(), true);
+            boolean exists = MongoAuth.databaseAccess.authDataExists(profile.getId(), true);
             if (exists) {
-                MongoAuth.playerCache.getOrCreate(profile.getId()).setPaswordHash(passwordHash);
+                MongoAuth.databaseAccess.getOrCreateAuthData(profile.getId()).setPaswordHash(passwordHash);
                 ctx.getSource().sendFeedback(new LiteralText(MongoAuthConfig.config.language.passwordChanged.formatted(profile.getName())), true);
             } else {
                 ctx.getSource().sendError(new LiteralText(MongoAuthConfig.config.language.userInexistent.formatted(profile.getName())));
@@ -91,7 +91,7 @@ public class MongoAuthMainCommand {
     }
 
     private static int clearCache(CommandContext<ServerCommandSource> ctx) {
-        MongoAuth.playerCache.clearCache();
+        MongoAuth.databaseAccess.clearAuthDataCache();
         MongoAuth.onlineUsernames.clear();
         ctx.getSource().sendFeedback(new LiteralText(MongoAuthConfig.config.language.cacheCleared), true);
         return 1;
@@ -100,9 +100,9 @@ public class MongoAuthMainCommand {
     private static int removeUser(CommandContext<ServerCommandSource> ctx) throws CommandSyntaxException {
         Collection<GameProfile> targets = GameProfileArgumentType.getProfileArgument(ctx, "target");
         for (GameProfile profile : targets) {
-            boolean exists = MongoAuth.playerCache.dataExists(profile.getId(), false);
+            boolean exists = MongoAuth.databaseAccess.authDataExists(profile.getId(), false);
             if (exists) {
-                MongoAuth.playerCache.deleteEntry(profile.getId());
+                MongoAuth.databaseAccess.deleteAuthData(profile.getId());
                 ctx.getSource().sendFeedback(new LiteralText(MongoAuthConfig.config.language.userRemoved.formatted(profile.getName())), true);
             } else {
                 ctx.getSource().sendError(new LiteralText(MongoAuthConfig.config.language.userInexistent.formatted(profile.getName())));

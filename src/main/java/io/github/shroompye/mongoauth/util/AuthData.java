@@ -9,7 +9,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.UUID;
 
 public class AuthData {
-    public static final Argon2 ARGON_2 = Argon2Factory.create(Argon2Factory.Argon2Types.ARGON2id);
+    public static final Argon2 ARGON2 = Argon2Factory.create(Argon2Factory.Argon2Types.ARGON2id);
 
     @Nullable
     private AuthSession session;
@@ -42,7 +42,7 @@ public class AuthData {
     }
 
     public static String createHash(String password) {
-        return ARGON_2.hash(4, 512 * 1024, 4, password);
+        return ARGON2.hash(4, 512 * 1024, 4, password.toCharArray());
     }
 
     public boolean hasValidSession(String ip) {
@@ -95,14 +95,14 @@ public class AuthData {
     }
 
     public boolean verifyPassword(String password) {
-        return ARGON_2.verify(paswordHash, password);
+        return ARGON2.verify(paswordHash, password.toCharArray());
     }
 
     public void setLeftUnathenticated(boolean leftUnathenticated) {
         this.leftUnathenticated = leftUnathenticated;
     }
 
-    public boolean didLeftUnathenticated() {
+    public boolean hasLeftUnathenticated() {
         return leftUnathenticated;
     }
 

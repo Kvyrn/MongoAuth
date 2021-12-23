@@ -16,9 +16,9 @@ public class LogoutCommand {
         dispatcher.register(CommandManager.literal("logout").executes(context -> {
             AuthenticationPlayer authPlayer = (AuthenticationPlayer) context.getSource().getPlayer();
             if (authPlayer.isAuthenticated()) {
-                MongoAuth.playerCache.getOrCreate(context.getSource().getPlayer().getUuid()).removeSession();
+                MongoAuth.databaseAccess.getOrCreateAuthData(context.getSource().getPlayer().getUuid()).removeSession();
                 authPlayer.setAuthenticated(false);
-                MongoAuth.saveAuthPlayer(context.getSource().getPlayer());
+                MongoAuth.databaseAccess.saveAuthPlayer(context.getSource().getPlayer());
             } else {
                 throw NOT_LOGGED_IN.create();
             }

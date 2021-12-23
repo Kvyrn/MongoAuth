@@ -13,5 +13,5 @@ public interface AuthenticationPlayer {
     AuthData getAuthData();
     void load(Document document);
     Document save();
-    void sientAuth();
+    void silentAuth();
 }

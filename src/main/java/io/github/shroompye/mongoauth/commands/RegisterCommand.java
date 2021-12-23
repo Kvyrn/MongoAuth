@@ -25,14 +25,14 @@ public class RegisterCommand {
             doRegister(context);
             return 1;
         }).then(argument("globalPassword", StringArgumentType.word()).executes(context -> {
-            if (MongoAuthConfig.config.auth().requrePasswordToRegister && !MongoAuth.globals.verifyGlobalPassword(StringArgumentType.getString(context, "globalPassword"))) throw WRONG_PASSWORD.create();
+            if (MongoAuthConfig.config.auth().requrePasswordToRegister && !MongoAuth.databaseAccess.verifyGlobalPassword(StringArgumentType.getString(context, "globalPassword"))) throw WRONG_PASSWORD.create();
             doRegister(context);
             return 1;
         })))));
     }
 
     private static void doRegister(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        AuthData data = MongoAuth.playerCache.getOrCreate(context.getSource().getPlayer().getUuid());
+        AuthData data = MongoAuth.databaseAccess.getOrCreateAuthData(context.getSource().getPlayer().getUuid());
         if (data.registered()) throw ALREDY_REGISTERED.create();
 
         String password = StringArgumentType.getString(context, "password");
@@ -42,6 +42,6 @@ public class RegisterCommand {
         data.setPassword(password);
         ((AuthenticationPlayer)context.getSource().getPlayer()).setAuthenticated(true);
         data.setLeftUnathenticated(false);
-        MongoAuth.playerCache.save(data);
+        MongoAuth.databaseAccess.saveAuthData(data);
     }
 }

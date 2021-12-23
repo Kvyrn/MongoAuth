@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class SlotMixin {
     @Inject(method = "canTakeItems(Lnet/minecraft/entity/player/PlayerEntity;)Z", at = @At(value = "HEAD"), cancellable = true)
     private void canTakeItems(PlayerEntity player, CallbackInfoReturnable<Boolean> cir) {
-        if (!MongoAuth.playerCache.getOrCreate(player.getUuid()).authenticated()) {
+        if (!MongoAuth.databaseAccess.getOrCreateAuthData(player.getUuid()).authenticated()) {
             cir.setReturnValue(false);
         }
     }

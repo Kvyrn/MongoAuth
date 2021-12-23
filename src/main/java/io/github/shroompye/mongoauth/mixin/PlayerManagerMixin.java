@@ -24,30 +24,30 @@ public class PlayerManagerMixin {
     private void onPlayerConnect(ClientConnection connection, ServerPlayerEntity player, CallbackInfo ci) {
         try {
             player.requestRespawn();
-            MongoAuth.loadAuthPlayer(player);
+            MongoAuth.databaseAccess.loadAuthPlayer(player);
             if (MongoAuth.onlineUsernames.contains(player.getGameProfile().getName().toLowerCase(Locale.ROOT))) {
-                ((AuthenticationPlayer)player).sientAuth();
+                ((AuthenticationPlayer)player).silentAuth();
                 return;
             }
-            AuthData authData = MongoAuth.playerCache.getOrCreate(player.getUuid());
+            AuthData authData = MongoAuth.databaseAccess.getOrCreateAuthData(player.getUuid());
             if (!MongoAuthConfig.config.auth().requireRegistration && !authData.registered()) {
-                ((AuthenticationPlayer) player).sientAuth();
+                ((AuthenticationPlayer) player).silentAuth();
                 return;
             }
             String ip = connection.getAddress().toString().split(":")[0];
             if (authData.hasValidSession(ip)) {
-                ((AuthenticationPlayer)player).sientAuth();
+                ((AuthenticationPlayer)player).silentAuth();
                 authData.makeSession(ip);
                 return;
             }
-            boolean leftUnathenticated = authData.didLeftUnathenticated();
+            boolean leftUnathenticated = authData.hasLeftUnathenticated();
             authData.setLeftUnathenticated(true);
             if (!leftUnathenticated) {
                 optionalyHide(player);
             }
             ((AuthenticationPlayer) player).setAuthenticated(false);
             player.sendMessage(new LiteralText(authData.registered() ? MongoAuthConfig.config.language.logIn : MongoAuthConfig.config.language.registrationRequired).styled(style -> style.withColor(Formatting.DARK_PURPLE).withBold(true)), false);
-            MongoAuth.saveAuthPlayer(player);
+            MongoAuth.databaseAccess.saveAuthPlayer(player);
         } catch (Exception e) {
             MongoAuth.LOGGER.error("Player logging in", e);
             throw e;
@@ -56,10 +56,10 @@ public class PlayerManagerMixin {
 
     @Inject(method = "remove", at = @At("HEAD"))
     private void onPlayerLeave(ServerPlayerEntity player, CallbackInfo ci) {
-        AuthData data = MongoAuth.playerCache.getOrCreate(player.getUuid());
+        AuthData data = MongoAuth.databaseAccess.getOrCreateAuthData(player.getUuid());
         if (data.authenticated()) {
             data.makeSession(player.networkHandler.connection.getAddress().toString().split(":")[0]);
         }
-        MongoAuth.playerCache.save(data);
+        MongoAuth.databaseAccess.saveAuthData(data);
     }
 }

@@ -24,7 +24,7 @@ public class PlayerListS2CPacketMixin {
     private void construct(PlayerListS2CPacket.Action action, ServerPlayerEntity[] players, CallbackInfo ci) {
         if (action == PlayerListS2CPacket.Action.ADD_PLAYER && !MongoAuthConfig.config.privacy.showInPlayerList) {
             entries.removeIf(entry -> {
-                AuthData authData = MongoAuth.playerCache.getOrCreate(entry.getProfile().getId());
+                AuthData authData = MongoAuth.databaseAccess.getOrCreateAuthData(entry.getProfile().getId());
                 return !authData.authenticated() && !MongoAuth.onlineUsernames.contains(entry.getProfile().getName().toLowerCase(Locale.ROOT));
             });
         }
@@ -34,7 +34,7 @@ public class PlayerListS2CPacketMixin {
     private void altConstruct(PlayerListS2CPacket.Action action, Collection<ServerPlayerEntity> players, CallbackInfo ci) {
         if (action == PlayerListS2CPacket.Action.ADD_PLAYER && !MongoAuthConfig.config.privacy.showInPlayerList) {
             entries.removeIf(entry -> {
-                AuthData authData = MongoAuth.playerCache.getOrCreate(entry.getProfile().getId());
+                AuthData authData = MongoAuth.databaseAccess.getOrCreateAuthData(entry.getProfile().getId());
                 return !authData.authenticated() && !MongoAuth.onlineUsernames.contains(entry.getProfile().getName().toLowerCase(Locale.ROOT));
             });
         }

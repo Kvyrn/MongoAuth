@@ -34,7 +34,7 @@ public class LoginCommand {
 
     private static int login(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         try {
-            AuthData data = MongoAuth.playerCache.getOrCreate(context.getSource().getPlayer().getUuid());
+            AuthData data = MongoAuth.databaseAccess.getOrCreateAuthData(context.getSource().getPlayer().getUuid());
             if (data.authenticated()) throw ALREDY_LOGGED_IN.create();
             if (!data.registered()) throw NOT_REGISTERED.create();
             String password = StringArgumentType.getString(context, "password");
@@ -42,7 +42,7 @@ public class LoginCommand {
                 throw MongoAuthConfig.config.language.suggestRefreshAuthCommand ? WRONG_PASSWORD_SUGGESTED.create() : WRONG_PASSWORD.create();
             ((AuthenticationPlayer) context.getSource().getPlayer()).setAuthenticated(true);
             data.setLeftUnathenticated(false);
-            MongoAuth.playerCache.save(data);
+            MongoAuth.databaseAccess.saveAuthData(data);
             return 1;
         } catch (Exception e) {
             MongoAuth.logNamedError("Error logging in", e);

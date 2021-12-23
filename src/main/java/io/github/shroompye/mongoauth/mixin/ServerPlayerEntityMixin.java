@@ -65,7 +65,7 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Au
     }
 
     private void onAuthenticated() {
-        if (MongoAuthConfig.config.privacy.hideInventory) MongoAuth.restoreInv(asPlayer());
+        if (MongoAuthConfig.config.privacy.hideInventory) MongoAuth.databaseAccess.restoreInv(asPlayer());
         if (this.hasVehicle()) {
             this.getRootVehicle().setNoGravity(false);
             this.getRootVehicle().setInvulnerable(false);
@@ -129,7 +129,7 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Au
     @Override
     @NotNull
     public AuthData getAuthData() {
-        return MongoAuth.playerCache.getOrCreate(this.uuid);
+        return MongoAuth.databaseAccess.getOrCreateAuthData(this.uuid);
     }
 
     @Override
@@ -156,7 +156,7 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Au
     }
 
     @Override
-    public void sientAuth() {
+    public void silentAuth() {
         authenticated = true;
         getAuthData().setAuthenticated(true);
     }
