@@ -7,7 +7,6 @@ import com.mongodb.client.*;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Sorts;
 import io.github.shroompye.mongoauth.config.MongoAuthConfig;
-import io.github.shroompye.mongoauth.mixin.PlayerEntityAccessor;
 import io.github.shroompye.mongoauth.util.AuthData;
 import io.github.shroompye.mongoauth.util.AuthenticationPlayer;
 import io.github.shroompye.mongoauth.util.ItemStachHelper;
@@ -32,10 +31,10 @@ public class MongoDatabaseAccess implements IDatabaseAccess {
     private final HashMap<UUID, AuthData> cachedData = new HashMap<>();
 
     public MongoDatabaseAccess() {
-        String[] split = MongoAuthConfig.config.databaseInfo.address.split(":");
+        String[] split = MongoAuthConfig.config.databaseInfo.mongoDB.address.split(":");
         int port = split.length < 2 ? 27017 : Integer.parseInt(split[1]);
         String address = split[0];
-        MongoCredential credential = MongoCredential.createCredential(MongoAuthConfig.config.databaseInfo.username, MongoAuthConfig.config.databaseInfo.userSourceDatabase, MongoAuthConfig.config.databaseInfo.password.toCharArray());
+        MongoCredential credential = MongoCredential.createCredential(MongoAuthConfig.config.databaseInfo.mongoDB.username, MongoAuthConfig.config.databaseInfo.mongoDB.userSourceDatabase, MongoAuthConfig.config.databaseInfo.mongoDB.password.toCharArray());
         MongoClientSettings settings = MongoClientSettings.builder()
                 .credential(credential)
                 .applyToClusterSettings(builder -> builder.hosts(Collections.singletonList(new ServerAddress(address, port))))
@@ -43,7 +42,7 @@ public class MongoDatabaseAccess implements IDatabaseAccess {
         MongoClient client = MongoClients.create(settings);
 
         try {
-            database = client.getDatabase(MongoAuthConfig.config.databaseInfo.database);
+            database = client.getDatabase(MongoAuthConfig.config.databaseInfo.mongoDB.database);
         } catch (IllegalArgumentException e) {
             LOGGER.fatal("[" + NAME + "] Invalid MongoDB database!", e);
             FabricGuiEntry.displayCriticalError(e, true);
@@ -156,7 +155,7 @@ public class MongoDatabaseAccess implements IDatabaseAccess {
 
     @Override
     public void storeInv(ServerPlayerEntity player) {
-        PlayerInventory inventory = ((PlayerEntityAccessor) player).getInventory();
+        PlayerInventory inventory = player.getInventory();
         Document invDoc = new Document();
         DefaultedList<String> mainStr = DefaultedList.ofSize(inventory.main.size(), "");
         DefaultedList<String> armorStr = DefaultedList.ofSize(inventory.armor.size(), "");
@@ -164,6 +163,9 @@ public class MongoDatabaseAccess implements IDatabaseAccess {
         stringify(inventory.main, mainStr);
         stringify(inventory.armor, armorStr);
         stringify(inventory.offHand, offhandStr);
+        System.out.println(inventory.main.size());
+        System.out.println(inventory.armor.size());
+        System.out.println(inventory.offHand.size());
         invDoc.put("type", "inventory");
         invDoc.put("uuid", player.getUuid().toString());
         invDoc.put("timestamp", new Date().getTime());
@@ -176,7 +178,7 @@ public class MongoDatabaseAccess implements IDatabaseAccess {
     @Override
     public void restoreInv(ServerPlayerEntity player) {
         Bson filter = Filters.and(Filters.eq("uuid", player.getUuidAsString()), Filters.eq("type", "inventory"));
-        PlayerInventory inventory = ((PlayerEntityAccessor) player).getInventory();
+        PlayerInventory inventory = player.getInventory();
         FindIterable<Document> documents = serverSpecificCollection.find(filter).sort(Sorts.descending("timestamp"));
         MongoCursor<Document> iterator = documents.iterator();
         if (!iterator.hasNext()) return;
@@ -190,13 +192,13 @@ public class MongoDatabaseAccess implements IDatabaseAccess {
         deStringify(inventory.offHand, offhand);
     }
 
-    private static void stringify(DefaultedList<ItemStack> items, DefaultedList<String> out) {
+    public static void stringify(DefaultedList<ItemStack> items, DefaultedList<String> out) {
         for (int i = 0; i < items.size(); i++) {
             out.set(i, ItemStachHelper.itemStackToString(items.get(i)));
         }
     }
 
-    private static void deStringify(DefaultedList<ItemStack> items, List<String> in) {
+    public static void deStringify(DefaultedList<ItemStack> items, List<String> in) {
         for (int i = 0; i < items.size(); i++) {
             items.set(i, ItemStachHelper.stringToItemStack(in.get(i)));
         }

@@ -12,7 +12,7 @@ public class AuthData {
     public static final Argon2 ARGON2 = Argon2Factory.create(Argon2Factory.Argon2Types.ARGON2id);
 
     @Nullable
-    private AuthSession session;
+    public AuthSession session;
     public final UUID uuid;
     private String paswordHash = null;
     private boolean authenticated = false;
@@ -22,7 +22,7 @@ public class AuthData {
         this.uuid = uuid;
     }
 
-    private AuthData(String passwordHash, @Nullable AuthSession session, UUID uuid, boolean leftUnauth) {
+    public AuthData(String passwordHash, @Nullable AuthSession session, UUID uuid, boolean leftUnauth) {
         this.session = session;
         this.uuid = uuid;
         this.paswordHash = passwordHash;
@@ -41,12 +41,26 @@ public class AuthData {
         this.paswordHash = paswordHash;
     }
 
+    public String getPaswordHash() {
+        return paswordHash;
+    }
+
     public static String createHash(String password) {
         return ARGON2.hash(4, 512 * 1024, 4, password.toCharArray());
     }
 
     public boolean hasValidSession(String ip) {
         return session != null && session.valid(ip);
+    }
+
+    public boolean hasValidSession() {
+        if (session == null) return false;
+        if (session.hasExpired()) {
+            removeSession();
+            return false;
+        } else {
+            return true;
+        }
     }
 
     public void makeSession(String ip) {
@@ -107,8 +121,8 @@ public class AuthData {
     }
 
     public static class AuthSession {
-        private final long expiresOn;
-        private final String ip;
+        public final long expiresOn;
+        public final String ip;
 
         public AuthSession(int expiresAfter, String ip) {
             this(System.currentTimeMillis() + expiresAfter * 1000L, ip);
@@ -121,6 +135,10 @@ public class AuthData {
 
         public boolean valid(String ip) {
             if (!this.ip.equals(ip)) return false;
+            return hasExpired();
+        }
+
+        public boolean hasExpired() {
             return System.currentTimeMillis() < expiresOn;
         }
     }

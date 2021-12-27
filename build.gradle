@@ -42,6 +42,10 @@ dependencies {
     modImplementation "ca.stellardrift:confabricate:${project.confabricate}"
     include "ca.stellardrift:confabricate:${project.confabricate}"
 
+	// MySQL
+    implementation "mysql:mysql-connector-java:${project.mysqlconnector}"
+    include "mysql:mysql-connector-java:${project.mysqlconnector}"
+
     implementation "org.mongodb:mongo-java-driver:${project.mongo}"
     include "org.mongodb:mongo-java-driver:${project.mongo}"
 

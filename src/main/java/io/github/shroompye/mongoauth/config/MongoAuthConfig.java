@@ -10,7 +10,6 @@ import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 import org.spongepowered.configurate.serialize.SerializationException;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -67,6 +66,7 @@ public class MongoAuthConfig {
     }
 
     private AuthConfigSection auth = new AuthConfigSection();
+
     public AuthConfigSection auth() {
         return auth;
     }
@@ -91,13 +91,28 @@ public class MongoAuthConfig {
 
     @ConfigSerializable
     public static class DatabaseInfoSection {
-        public String address = "localhost";
-        public String username = "";
-        public String userSourceDatabase = "";
-        public String password = "";
-        public String database = "MinecraftAuth";
         @Comment("Identifies this server. Should be unique among all servers using the same database.")
         public String serverId = "server";
+        @Comment("Must be one of: mongodb, mysql")
+        public String databaseType = "mogodb";
+
+        public MongoDBSection mongoDB = new MongoDBSection();
+
+        public static class MongoDBSection {
+            public String address = "localhost";
+            public String username = "";
+            public String userSourceDatabase = "";
+            public String password = "";
+            public String database = "MinecraftAuth";
+        }
+
+        public MySQLSection mySQL = new MySQLSection();
+
+        public static class MySQLSection {
+            public String address = "localhost:3306/minecraftauth";
+            public String username = "user";
+            public String password = "pass";
+        }
     }
 
     public PlayerActionsSection playerActions = new PlayerActionsSection();

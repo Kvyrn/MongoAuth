@@ -4,16 +4,18 @@ import io.github.shroompye.mongoauth.commands.*;
 import io.github.shroompye.mongoauth.config.MongoAuthConfig;
 import io.github.shroompye.mongoauth.database.IDatabaseAccess;
 import io.github.shroompye.mongoauth.database.MongoDatabaseAccess;
-import io.github.shroompye.mongoauth.mixin.PlayerEntityAccessor;
+import io.github.shroompye.mongoauth.database.MySQLDatabaseAccess;
 import io.github.shroompye.mongoauth.util.AuthenticationPlayer;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.loader.api.FabricLoader;
+import net.fabricmc.loader.impl.gui.FabricGuiEntry;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.sql.SQLException;
 import java.util.LinkedList;
 
 public class MongoAuth implements ModInitializer {
@@ -50,7 +52,17 @@ public class MongoAuth implements ModInitializer {
             MongoAuthMainCommand.register(dispatcher);
         });
 
-        databaseAccess = new MongoDatabaseAccess();
+        switch (MongoAuthConfig.config.databaseInfo.databaseType) {
+            case "mongodb" -> databaseAccess = new MongoDatabaseAccess();
+            case "mysql" -> {
+                try {
+                    databaseAccess = new MySQLDatabaseAccess();
+                } catch (SQLException e) {
+                    FabricGuiEntry.displayCriticalError(e, true);
+                }
+            }
+            default -> FabricGuiEntry.displayCriticalError(new IllegalArgumentException("[" + NAME + "] Invalid database type: " + MongoAuthConfig.config.databaseInfo.databaseType), true);
+        }
     }
 
     public static void logNamed(String str) {
@@ -72,7 +84,7 @@ public class MongoAuth implements ModInitializer {
         optionalyHideInvless(player);
         if (MongoAuthConfig.config.privacy.hideInventory) {
             MongoAuth.databaseAccess.storeInv(player);
-            ((PlayerEntityAccessor) player).getInventory().clear();
+            player.getInventory().clear();
         }
     }
 
