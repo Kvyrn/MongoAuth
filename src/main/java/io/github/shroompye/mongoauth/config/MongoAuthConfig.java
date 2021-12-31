@@ -94,10 +94,11 @@ public class MongoAuthConfig {
         @Comment("Identifies this server. Should be unique among all servers using the same database.")
         public String serverId = "server";
         @Comment("Must be one of: mongodb, mysql")
-        public String databaseType = "mogodb";
+        public String databaseType = "mongodb";
 
         public MongoDBSection mongoDB = new MongoDBSection();
 
+        @ConfigSerializable
         public static class MongoDBSection {
             public String address = "localhost";
             public String username = "";
@@ -108,6 +109,7 @@ public class MongoAuthConfig {
 
         public MySQLSection mySQL = new MySQLSection();
 
+        @ConfigSerializable
         public static class MySQLSection {
             public String address = "localhost:3306/minecraftauth";
             public String username = "user";

@@ -40,6 +40,59 @@ public class MySQLDatabaseAccess implements IDatabaseAccess {
 
     public MySQLDatabaseAccess() throws SQLException {
         connection = DriverManager.getConnection(MongoAuthConfig.config.databaseInfo.mySQL.address, MongoAuthConfig.config.databaseInfo.mySQL.username, MongoAuthConfig.config.databaseInfo.mySQL.password);
+
+        // Create tables
+        try (PreparedStatement createGlobalsTable = connection.prepareStatement("CREATE TABLE IF NOT EXISTS Globals (" +
+                "Password TINYTEXT," +
+                "Timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP);")) {
+            createGlobalsTable.executeUpdate();
+        } catch (SQLException e) {
+            logException(e, "creating globals table");
+        }
+
+        try (PreparedStatement createInventoryTable = connection.prepareStatement("CREATE TABLE IF NOT EXISTS Inventory (" +
+                "Id BIGINT," +
+                "Server TINYTEXT," +
+                "Uuid CHAR(36)," +
+                "Slot INT," +
+                "Section ENUM(main, armor, offhand)," +
+                "Value MEDIUMTEXT);")) {
+            createInventoryTable.executeUpdate();
+        } catch (SQLException e) {
+            logException(e, "creating globals table");
+        }
+
+        try (PreparedStatement createInventoryOwnersTable = connection.prepareStatement("CREATE TABLE IF NOT EXISTS InventoryOwners (" +
+                "Uuid CHAR(36)," +
+                "Server TINYTEXT," +
+                "LastInvId BIGINT);")) {
+            createInventoryOwnersTable.executeUpdate();
+        } catch (SQLException e) {
+            logException(e, "creating globals table");
+        }
+
+        try (PreparedStatement createServerPlayersTable = connection.prepareStatement("CREATE TABLE IF NOT EXISTS ServerPlayers (" +
+                "Uuid CHAR(36)," +
+                "Server TINYTEXT," +
+                "XPos DOUBLE," +
+                "YPos DOUBLE," +
+                "ZPos DOUBLE);")) {
+            createServerPlayersTable.executeUpdate();
+        } catch (SQLException e) {
+            logException(e, "creating globals table");
+        }
+
+        try (PreparedStatement createPlayersTable = connection.prepareStatement("CREATE TABLE IF NOT EXISTS Players (" +
+                "Uuid CHAR(36)," +
+                "Password TINYTEXT," +
+                "LeftUnauthenticated BOOL," +
+                "SessionIP TINYTEXT," +
+                "ExpiresOn BIGINT," +
+                "PRIMARY KEY (Uuid));")) {
+            createPlayersTable.executeUpdate();
+        } catch (SQLException e) {
+            logException(e, "creating globals table");
+        }
     }
 
     @Override
@@ -248,9 +301,9 @@ public class MySQLDatabaseAccess implements IDatabaseAccess {
                 int index = set.getInt("Slot");
                 String value = set.getString("Value");
                 (switch (set.getString("Section")) {
-                    case "main" -> mainStr;
                     case "armor" -> armorStr;
                     case "offhand" -> offhandStr;
+                    default -> mainStr;
                 }).add(index, value);
             }
 

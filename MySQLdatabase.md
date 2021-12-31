@@ -20,7 +20,7 @@
 
 | Name         | Data type  |
 |--------------|------------|
-| `Uuid (key)` | `CHAR(36)` |
+| `Uuid` | `CHAR(36)` |
 | `Server`     | `TINYTEXT` |
 | `LastInvId`  | `BIGINT`   |
 
