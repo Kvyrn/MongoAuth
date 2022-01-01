@@ -39,6 +39,7 @@ dependencies {
 
     implementation "de.mkammerer:argon2-jvm:${project.argon}"
     include "de.mkammerer:argon2-jvm:${project.argon}"
+    include "de.mkammerer:argon2-jvm-nolibs:${project.argon}"
 
     modImplementation "ca.stellardrift:confabricate:${project.confabricate}"
     include "ca.stellardrift:confabricate:${project.confabricate}"
