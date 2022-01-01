@@ -8,6 +8,7 @@ import org.spongepowered.configurate.ConfigurateException;
 import org.spongepowered.configurate.hocon.HoconConfigurationLoader;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
+import org.spongepowered.configurate.objectmapping.meta.Setting;
 import org.spongepowered.configurate.serialize.SerializationException;
 
 import java.nio.file.Path;
@@ -96,6 +97,7 @@ public class MongoAuthConfig {
         @Comment("Must be one of: mongodb, mysql")
         public String databaseType = "mongodb";
 
+        @Setting(value = "mongoDB")
         public MongoDBSection mongoDB = new MongoDBSection();
 
         @ConfigSerializable
@@ -107,6 +109,7 @@ public class MongoAuthConfig {
             public String database = "MinecraftAuth";
         }
 
+        @Setting(value = "mySQL")
         public MySQLSection mySQL = new MySQLSection();
 
         @ConfigSerializable

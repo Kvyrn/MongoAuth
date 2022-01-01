@@ -39,7 +39,7 @@ public class MySQLDatabaseAccess implements IDatabaseAccess {
     private final HashMap<UUID, AuthData> authDataCache = new HashMap<>();
 
     public MySQLDatabaseAccess() throws SQLException {
-        connection = DriverManager.getConnection(MongoAuthConfig.config.databaseInfo.mySQL.address, MongoAuthConfig.config.databaseInfo.mySQL.username, MongoAuthConfig.config.databaseInfo.mySQL.password);
+        connection = DriverManager.getConnection("jdbc:mysql://" + MongoAuthConfig.config.databaseInfo.mySQL.address, MongoAuthConfig.config.databaseInfo.mySQL.username, MongoAuthConfig.config.databaseInfo.mySQL.password);
 
         // Create tables
         try (PreparedStatement createGlobalsTable = connection.prepareStatement("CREATE TABLE IF NOT EXISTS Globals (" +
@@ -55,7 +55,7 @@ public class MySQLDatabaseAccess implements IDatabaseAccess {
                 "Server TINYTEXT," +
                 "Uuid CHAR(36)," +
                 "Slot INT," +
-                "Section ENUM(main, armor, offhand)," +
+                "Section ENUM('main', 'armor', 'offhand')," +
                 "Value MEDIUMTEXT);")) {
             createInventoryTable.executeUpdate();
         } catch (SQLException e) {
