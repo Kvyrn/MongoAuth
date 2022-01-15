@@ -27,7 +27,7 @@ public class MongoAuthMainCommand {
                                                   .then(literal("changePassword").then(argument("target", GameProfileArgumentType.gameProfile()).then(argument("password", StringArgumentType.word()).executes(MongoAuthMainCommand::changPassword))))
                                                   .then(literal("removeSession").then(argument("target", GameProfileArgumentType.gameProfile()).executes(MongoAuthMainCommand::removeSession))))
                                     .then(literal("setGlobalPassword").then(argument("password", StringArgumentType.word()).then(argument("verifyPassword", StringArgumentType.word()).executes(MongoAuthMainCommand::setGlobalPassword))))
-                                    .then(literal("setGlobalPasswordRequrement").then(argument("value", BoolArgumentType.bool()).executes(MongoAuthMainCommand::setGlobalPasswordRequred)))
+                                    .then(literal("setGlobalPasswordRequirement").then(argument("value", BoolArgumentType.bool()).executes(MongoAuthMainCommand::setGlobalPasswordRequred)))
                                     .then(literal("reloadConfig").executes(MongoAuthMainCommand::reloadConfig))
         );
     }

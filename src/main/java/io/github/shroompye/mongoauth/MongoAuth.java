@@ -1,6 +1,5 @@
 package io.github.shroompye.mongoauth;
 
-import de.mkammerer.argon2.Argon2;
 import io.github.shroompye.mongoauth.commands.*;
 import io.github.shroompye.mongoauth.config.MongoAuthConfig;
 import io.github.shroompye.mongoauth.database.IDatabaseAccess;
@@ -28,8 +27,6 @@ public class MongoAuth implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        System.out.println(Argon2.class.getName());
-
         FabricLoader.getInstance().getModContainer(modid).ifPresent(modContainer -> NAME = modContainer.getMetadata().getName());
         MongoAuthConfig.load();
 

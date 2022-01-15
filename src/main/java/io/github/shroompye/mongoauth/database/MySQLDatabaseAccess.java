@@ -24,14 +24,14 @@ public class MySQLDatabaseAccess implements IDatabaseAccess {
     private static final String checkAuthData = "SELECT 1 FROM Players WHERE Uuid = ?;";
     private static final String createAuthData = "INSERT INTO Players VALUES (?, ?, ?, ?, ?);";
     private static final String updateAuthData = "UPDATE Players SET Password = ?, LeftUnauthenticated = ?, SessionIP = ?, ExpiresOn = ? WHERE Uuid = ?;";
-    private static final String removeAuthData = "DELETE FROM Player WHERE Uuid = ?;";
+    private static final String removeAuthData = "DELETE FROM Players WHERE Uuid = ?;";
     private static final String insertInvSlot = "INSERT INTO Inventory VALUES(?, ?, ?, ?, ?, ?);";
     private static final String updateLastInvId = "UPDATE InventoryOwners SET LastInvId = ? WHERE Uuid = ? AND Server = ?;";
     private static final String getLastInvId = "SELECT LastInvId FROM InventoryOwners WHERE Uuid = ? AND Server = ?;";
-    private static final String dropOldInvSlots = "DELETE FROM Inventory WHERE Id = ?, Server = ? AND Uuid = ?;";
+    private static final String dropOldInvSlots = "DELETE FROM Inventory WHERE Id = ? AND Server = ? AND Uuid = ?;";
     private static final String getInvData = "SELECT Slot, Section, Value FROM Inventory WHERE Id = ? AND Server = ? AND Uuid = ?;";
     private static final String authPlayerDataExists = "SELECT 1 FROM ServerPlayers WHERE Uuid = ? AND Server = ?;";
-    private static final String insertAuthPlayerData = "INSERT INSTO ServerPlayers VALUES (?, ?, ?, ?, ?);";
+    private static final String insertAuthPlayerData = "INSERT INTO ServerPlayers VALUES (?, ?, ?, ?, ?);";
     private static final String updateAuthPlayerData = "UPDATE ServerPlayers SET XPos = ?, YPos = ?, ZPos = ? WHERE Uuid = ? AND Server = ?;";
     private static final String getAuthPlayerData = "SELECT XPos, YPos, ZPos FROM ServerPlayers WHERE Uuid = ? AND Server = ?;";
 
@@ -154,9 +154,10 @@ public class MySQLDatabaseAccess implements IDatabaseAccess {
     @Override
     public void saveAuthData(AuthData authData) {
         try {
-            if (authDataExists(authData.uuid, false)) {
-                boolean hasValidSession = authData.hasValidSession();
+            boolean hasValidSession = authData.hasValidSession();
+            MongoAuth.logNamed("Sesion for " + authData.uuid + ": " + hasValidSession);
 
+            if (authDataExists(authData.uuid, false)) {
                 PreparedStatement update = connection.prepareStatement(updateAuthData);
                 update.setString(1, authData.getPaswordHash());
                 update.setBoolean(2, authData.hasLeftUnathenticated());
@@ -167,14 +168,14 @@ public class MySQLDatabaseAccess implements IDatabaseAccess {
                 update.setString(5, authData.uuid.toString());
                 update.executeUpdate();
             } else {
-                boolean hasValidSession = authData.hasValidSession();
                 PreparedStatement create = connection.prepareStatement(createAuthData);
                 create.setString(1, authData.uuid.toString());
                 create.setString(2, authData.getPaswordHash());
                 create.setBoolean(3, authData.hasLeftUnathenticated());
                 //noinspection ConstantConditions
                 create.setString(4, hasValidSession ? authData.session.ip : "a");
-                create.setLong(4, hasValidSession ? authData.session.expiresOn : 0);
+                create.setLong(5, hasValidSession ? authData.session.expiresOn : 0);
+                create.executeUpdate();
             }
         } catch (SQLException e) {
             logException(e, "saveAuthData");
@@ -202,6 +203,7 @@ public class MySQLDatabaseAccess implements IDatabaseAccess {
     public boolean authDataExists(UUID uuid, boolean cacheFound) {
         try {
             PreparedStatement statement = connection.prepareStatement(checkAuthData);
+            statement.setString(1, uuid.toString());
             return statement.executeQuery().next();
         } catch (SQLException e) {
             logException(e, "authDataExists");

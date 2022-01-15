@@ -64,7 +64,7 @@ public class AuthData {
     }
 
     public void makeSession(String ip) {
-        if (MongoAuthConfig.config.auth().sessionTime > 0) {
+        if (MongoAuthConfig.config.auth().sessionTime > 1) {
             this.session = new AuthSession(MongoAuthConfig.config.auth().sessionTime, ip);
         }
     }
@@ -125,7 +125,7 @@ public class AuthData {
         public final String ip;
 
         public AuthSession(int expiresAfter, String ip) {
-            this(System.currentTimeMillis() + expiresAfter * 1000L, ip);
+            this(System.currentTimeMillis() + (expiresAfter * 1000L), ip);
         }
 
         public AuthSession(long expiresOn, String ip) {
@@ -135,11 +135,11 @@ public class AuthData {
 
         public boolean valid(String ip) {
             if (!this.ip.equals(ip)) return false;
-            return hasExpired();
+            return !hasExpired();
         }
 
         public boolean hasExpired() {
-            return System.currentTimeMillis() < expiresOn;
+            return System.currentTimeMillis() > expiresOn;
         }
     }
 }

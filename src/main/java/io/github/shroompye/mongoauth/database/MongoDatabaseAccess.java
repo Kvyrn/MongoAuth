@@ -199,7 +199,7 @@ public class MongoDatabaseAccess implements IDatabaseAccess {
     }
 
     public static void deStringify(DefaultedList<ItemStack> items, List<String> in) {
-        for (int i = 0; i < items.size(); i++) {
+        for (int i = 0; i < in.size(); i++) {
             items.set(i, ItemStachHelper.stringToItemStack(in.get(i)));
         }
     }
