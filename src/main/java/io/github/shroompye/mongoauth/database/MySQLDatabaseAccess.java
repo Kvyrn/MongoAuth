@@ -155,7 +155,6 @@ public class MySQLDatabaseAccess implements IDatabaseAccess {
     public void saveAuthData(AuthData authData) {
         try {
             boolean hasValidSession = authData.hasValidSession();
-            MongoAuth.logNamed("Sesion for " + authData.uuid + ": " + hasValidSession);
 
             if (authDataExists(authData.uuid, false)) {
                 PreparedStatement update = connection.prepareStatement(updateAuthData);
