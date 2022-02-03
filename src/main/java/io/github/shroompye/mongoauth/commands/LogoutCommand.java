@@ -19,6 +19,7 @@ public class LogoutCommand {
                 MongoAuth.databaseAccess.getOrCreateAuthData(context.getSource().getPlayer().getUuid()).removeSession();
                 authPlayer.setAuthenticated(false);
                 MongoAuth.databaseAccess.saveAuthPlayer(context.getSource().getPlayer());
+                context.getSource().sendFeedback(new LiteralText(MongoAuthConfig.config.language.logOutSuccesful), false);
             } else {
                 throw NOT_LOGGED_IN.create();
             }

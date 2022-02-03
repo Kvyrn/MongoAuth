@@ -43,6 +43,7 @@ public class LoginCommand {
             ((AuthenticationPlayer) context.getSource().getPlayer()).setAuthenticated(true);
             data.setLeftUnathenticated(false);
             MongoAuth.databaseAccess.saveAuthData(data);
+            context.getSource().sendFeedback(new LiteralText(MongoAuthConfig.config.language.logInSuccesful), false);
             return 1;
         } catch (Exception e) {
             MongoAuth.logNamedError("Error logging in", e);
