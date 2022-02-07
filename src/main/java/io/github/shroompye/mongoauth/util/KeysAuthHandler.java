@@ -99,12 +99,25 @@ public class KeysAuthHandler {
                 return;
             }
 
+            if (!isKeyValid(input)) {
+                networkHandler.disconnect(new LiteralText(MongoAuthConfig.config.language.registrationInvalidkey));
+            }
+
             MongoAuth.databaseAccess.getOrCreateAuthData(profile.getId()).setPaswordHash(encodeKey(input));
             ((NetworkHandlerStateAccess) networkHandler).setState(ServerLoginNetworkHandler.State.READY_TO_ACCEPT);
 
             if (MongoAuthConfig.config.debug.logRegistration) {
                 MongoAuth.logNamed(profile.getName() + " registered with key");
             }
+        }
+    }
+
+    private boolean isKeyValid(byte[] data) {
+        try {
+            KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(data));
+            return true;
+        } catch (InvalidKeySpecException | NoSuchAlgorithmException e) {
+            return false;
         }
     }
 

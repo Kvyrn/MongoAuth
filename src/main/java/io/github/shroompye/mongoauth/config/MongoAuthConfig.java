@@ -170,6 +170,7 @@ public class MongoAuthConfig {
         public String invalidKey = "Failed to log in: invalid key";
         public String errorVerifyingKey = "Failed to log in: error verifying key!\nContact server administrator!";
         public String userAlredyExists = "Registration failed: user alredy exists";
+        public String registrationInvalidkey = "Registration failed: invalid key";
     }
 
     public DebugSection debug = new DebugSection();
