@@ -23,9 +23,9 @@ public class PlayerManagerMixin {
     @Inject(method = "onPlayerConnect", at = @At("TAIL"))
     private void onPlayerConnect(ClientConnection connection, ServerPlayerEntity player, CallbackInfo ci) {
         try {
-            player.requestRespawn();
             MongoAuth.databaseAccess.loadAuthPlayer(player);
-            if (MongoAuth.onlineUsernames.contains(player.getGameProfile().getName().toLowerCase(Locale.ROOT))) {
+            if (MongoAuth.onlineUsernames.contains(player.getGameProfile().getName().toLowerCase(Locale.ROOT)) ||
+                    MongoAuth.playersWithMongoAuthKeys.contains(player.getGameProfile().getName().toLowerCase(Locale.ROOT))) {
                 ((AuthenticationPlayer)player).silentAuth();
                 return;
             }

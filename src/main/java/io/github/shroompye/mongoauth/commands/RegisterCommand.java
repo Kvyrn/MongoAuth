@@ -43,5 +43,9 @@ public class RegisterCommand {
         ((AuthenticationPlayer)context.getSource().getPlayer()).setAuthenticated(true);
         data.setLeftUnathenticated(false);
         MongoAuth.databaseAccess.saveAuthData(data);
+
+        if (MongoAuthConfig.config.debug.logRegistration) {
+            MongoAuth.logNamed(context.getSource().getPlayer().getGameProfile().getName() + " registered with password");
+        }
     }
 }

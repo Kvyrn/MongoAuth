@@ -73,6 +73,17 @@ public class AuthData {
         this.session = null;
     }
 
+    public AuthMethod getAuthenticationMethod() {
+        String hash = getPaswordHash();
+        if (hash == null) {
+            return AuthMethod.MOJANG;
+        } else if (hash.startsWith("$argon")) {
+            return AuthMethod.PASSWORD;
+        } else {
+            return AuthMethod.KEYS;
+        }
+    }
+
     public Document asDocument() {
         Document document = new Document();
         document.put("passwordHash", paswordHash);

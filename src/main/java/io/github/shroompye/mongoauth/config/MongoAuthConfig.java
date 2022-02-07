@@ -166,6 +166,10 @@ public class MongoAuthConfig {
         public String requirementSet = "Global password requrement set to %s!";
         public String sessionRemoved = "Removed %s's session";
         public String configReloaded = "Config reloaded";
+        public String errorVerifyingAccount = "Error verifying Mojang account!\n%s";
+        public String invalidKey = "Failed to log in: invalid key";
+        public String errorVerifyingKey = "Failed to log in: error verifying key!\nContact server administrator!";
+        public String userAlredyExists = "Registration failed: user alredy exists";
     }
 
     public DebugSection debug = new DebugSection();
@@ -175,5 +179,6 @@ public class MongoAuthConfig {
         public boolean announceAuthConsole = false;
         public boolean announceLogInAttempt = false;
         public boolean logMojangAccount = false;
+        public boolean logRegistration = false;
     }
 }

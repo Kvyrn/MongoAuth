@@ -18,11 +18,11 @@
 
 ## InventoryOwners table
 
-| Name         | Data type  |
-|--------------|------------|
-| `Uuid` | `CHAR(36)` |
-| `Server`     | `TINYTEXT` |
-| `LastInvId`  | `BIGINT`   |
+| Name        | Data type  |
+|-------------|------------|
+| `Uuid`      | `CHAR(36)` |
+| `Server`    | `TINYTEXT` |
+| `LastInvId` | `BIGINT`   |
 
 ## ServerPlayers table
 

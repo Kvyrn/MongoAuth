@@ -6,23 +6,28 @@ import io.github.shroompye.mongoauth.database.IDatabaseAccess;
 import io.github.shroompye.mongoauth.database.MongoDatabaseAccess;
 import io.github.shroompye.mongoauth.database.MySQLDatabaseAccess;
 import io.github.shroompye.mongoauth.util.AuthenticationPlayer;
+import io.github.shroompye.mongoauth.util.KeysAuthHandler;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.impl.gui.FabricGuiEntry;
+import net.minecraft.network.ClientConnection;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.LinkedList;
 
 public class MongoAuth implements ModInitializer {
     public static final String modid = "mongo-auth";
-    public static final Logger LOGGER = LogManager.getLogger();
+    public static final Logger LOGGER = LogManager.getLogger("MongoAuth");
     public static IDatabaseAccess databaseAccess;
     public static final LinkedList<String> onlineUsernames = new LinkedList<>();
+    public static final LinkedList<String> playersWithMongoAuthKeys = new LinkedList<>();
+    public static final HashMap<ClientConnection, KeysAuthHandler> AUTH_HANDLERS = new HashMap<>();
     public static String NAME = "";
 
     @Override
@@ -51,6 +56,8 @@ public class MongoAuth implements ModInitializer {
             RefreshauthCommand.register(dispatcher);
             MongoAuthMainCommand.register(dispatcher);
         });
+
+        KeysAuthHandler.registerGlobalReciver();
 
         switch (MongoAuthConfig.config.databaseInfo.databaseType) {
             case "mongodb" -> databaseAccess = new MongoDatabaseAccess();

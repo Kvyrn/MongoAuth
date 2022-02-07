@@ -84,7 +84,7 @@ public class MySQLDatabaseAccess implements IDatabaseAccess {
 
         try (PreparedStatement createPlayersTable = connection.prepareStatement("CREATE TABLE IF NOT EXISTS Players (" +
                 "Uuid CHAR(36)," +
-                "Password TINYTEXT," +
+                "Password TEXT," +
                 "LeftUnauthenticated BOOL," +
                 "SessionIP TINYTEXT," +
                 "ExpiresOn BIGINT," +
@@ -92,6 +92,12 @@ public class MySQLDatabaseAccess implements IDatabaseAccess {
             createPlayersTable.executeUpdate();
         } catch (SQLException e) {
             logException(e, "creating globals table");
+        }
+
+        try (PreparedStatement migratePlayersTable = connection.prepareStatement("ALTER TABLE Players MODIFY Password TEXT;")) {
+            migratePlayersTable.executeUpdate();
+        } catch (SQLException e) {
+            logException(e, "migrating players table");
         }
     }
 
