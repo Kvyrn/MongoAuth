@@ -25,7 +25,9 @@ public class PlayerListS2CPacketMixin {
         if (action == PlayerListS2CPacket.Action.ADD_PLAYER && !MongoAuthConfig.config.privacy.showInPlayerList) {
             entries.removeIf(entry -> {
                 AuthData authData = MongoAuth.databaseAccess.getOrCreateAuthData(entry.getProfile().getId());
-                return !authData.authenticated() && !MongoAuth.onlineUsernames.contains(entry.getProfile().getName().toLowerCase(Locale.ROOT));
+                return !authData.authenticated() &&
+                        !MongoAuth.onlineUsernames.contains(entry.getProfile().getName().toLowerCase(Locale.ROOT)) &&
+                        !MongoAuth.playersWithMongoAuthKeys.contains(entry.getProfile().getName().toLowerCase(Locale.ROOT));
             });
         }
     }
@@ -35,7 +37,9 @@ public class PlayerListS2CPacketMixin {
         if (action == PlayerListS2CPacket.Action.ADD_PLAYER && !MongoAuthConfig.config.privacy.showInPlayerList) {
             entries.removeIf(entry -> {
                 AuthData authData = MongoAuth.databaseAccess.getOrCreateAuthData(entry.getProfile().getId());
-                return !authData.authenticated() && !MongoAuth.onlineUsernames.contains(entry.getProfile().getName().toLowerCase(Locale.ROOT));
+                return !authData.authenticated() &&
+                        !MongoAuth.onlineUsernames.contains(entry.getProfile().getName().toLowerCase(Locale.ROOT)) &&
+                        !MongoAuth.playersWithMongoAuthKeys.contains(entry.getProfile().getName().toLowerCase(Locale.ROOT));
             });
         }
     }
