@@ -181,5 +181,6 @@ public class MongoAuthConfig {
         public boolean announceLogInAttempt = false;
         public boolean logMojangAccount = false;
         public boolean logRegistration = false;
+        public boolean doAuthHandlerCleaning = true;
     }
 }

@@ -34,6 +34,25 @@ public class MongoAuth implements ModInitializer {
     public void onInitialize() {
         FabricLoader.getInstance().getModContainer(modid).ifPresent(modContainer -> NAME = modContainer.getMetadata().getName());
         MongoAuthConfig.load();
+        MongoAuthConfig.save();
+
+        if (MongoAuthConfig.config.auth().doMojangLogin && MongoAuthConfig.config.debug.doAuthHandlerCleaning) {
+            Thread thread = new Thread(() -> {
+                while (true) {
+                    for (ClientConnection connection : AUTH_HANDLERS.keySet()) {
+                        if (!connection.isOpen()) {
+                            AUTH_HANDLERS.remove(connection);
+                        }
+                    }
+                    try {
+                        Thread.sleep(120000);
+                    } catch (InterruptedException e) {
+                        LOGGER.warn("[" + NAME + "] Cleaner thread interrupted!", e);
+                    }
+                }
+            }, "MongoAuthCleaner");
+            thread.start();
+        }
 
         ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
             if (((AuthenticationPlayer) oldPlayer).isAuthenticated()) {
