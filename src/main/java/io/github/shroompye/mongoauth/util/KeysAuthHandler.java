@@ -62,7 +62,7 @@ public class KeysAuthHandler {
     }
 
     public void recivePacket(boolean isRegistered, byte[] input) {
-        GameProfile profile = ((NetworkHandlerStateAccess) networkHandler).getGameProfile();
+        GameProfile profile = ((NetworkHandlerStateAccess) networkHandler).mongoauth_getGameProfile();
         if (isRegistered) {
             PublicKey key = getPublicKey(MongoAuth.databaseAccess.getOrCreateAuthData(profile.getId()));
             boolean sigGood;

@@ -140,7 +140,7 @@ public abstract class ServerLoginNetworkHandlerMixin implements NetworkHandlerSt
     }
 
     @Override
-    public GameProfile getGameProfile() {
+    public GameProfile mongoauth_getGameProfile() {
         return profile;
     }
 }

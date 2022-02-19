@@ -65,7 +65,7 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Au
     }
 
     private void onAuthenticated() {
-        if (MongoAuthConfig.config.privacy.hideInventory) MongoAuth.databaseAccess.restoreInv(asPlayer());
+        if (MongoAuthConfig.config.privacy.hideInventory) MongoAuth.databaseAccess.restoreInv(mongoauth_asPlayer());
         if (this.hasVehicle()) {
             this.getRootVehicle().setNoGravity(false);
             this.getRootVehicle().setInvulnerable(false);
@@ -78,11 +78,11 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Au
         }
         if (!MongoAuthConfig.config.privacy.showInPlayerList) {
             for (ServerPlayerEntity other : this.server.getPlayerManager().getPlayerList()) {
-                other.networkHandler.sendPacket(new PlayerListS2CPacket(PlayerListS2CPacket.Action.ADD_PLAYER, asPlayer()));
+                other.networkHandler.sendPacket(new PlayerListS2CPacket(PlayerListS2CPacket.Action.ADD_PLAYER, mongoauth_asPlayer()));
             }
         } else {
             for (ServerPlayerEntity other : this.server.getPlayerManager().getPlayerList()) {
-                other.networkHandler.sendPacket(new PlayerListS2CPacket(PlayerListS2CPacket.Action.UPDATE_DISPLAY_NAME, asPlayer()));
+                other.networkHandler.sendPacket(new PlayerListS2CPacket(PlayerListS2CPacket.Action.UPDATE_DISPLAY_NAME, mongoauth_asPlayer()));
             }
         }
         if (MongoAuthConfig.config.debug.announceAuthConsole) {
@@ -151,7 +151,7 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Au
     }
 
     @SuppressWarnings("ConstantConditions")
-    private ServerPlayerEntity asPlayer() {
+    private ServerPlayerEntity mongoauth_asPlayer() {
         return (ServerPlayerEntity) ((Object) this);
     }
 
