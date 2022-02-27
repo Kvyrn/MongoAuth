@@ -55,7 +55,7 @@ public abstract class ServerLoginNetworkHandlerMixin implements NetworkHandlerSt
         HasMongoAuthKeys mongoAuthKeysInfo = (HasMongoAuthKeys) packet;
         if (MongoAuthConfig.config.debug.announceLogInAttempt)
             logNamed(packet.getProfile().getName() + " is trying to log in");
-        if (MongoAuthConfig.config.auth().doMojangLogin) {
+        if (MongoAuthConfig.config.auth.doMojangLogin) {
             try {
                 String playername = packet.getProfile().getName().toLowerCase();
                 Pattern pattern = Pattern.compile("^[a-z0-9_]{3,16}$");
@@ -115,7 +115,7 @@ public abstract class ServerLoginNetworkHandlerMixin implements NetworkHandlerSt
 
     @Redirect(method = "onKey", at = @At(value = "INVOKE", target = "Ljava/lang/Thread;start()V"))
     private void removeThreadOnKey(Thread instance) {
-        if (!MongoAuthConfig.config.auth().doMojangLogin || (this.profile != null && MongoAuth.onlineUsernames.contains(this.profile.getName().toLowerCase()))) {
+        if (!MongoAuthConfig.config.auth.doMojangLogin || (this.profile != null && MongoAuth.onlineUsernames.contains(this.profile.getName().toLowerCase()))) {
             instance.start();
         } else {
             //this.state = ServerLoginNetworkHandler.State.READY_TO_ACCEPT;

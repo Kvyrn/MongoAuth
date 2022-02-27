@@ -36,7 +36,7 @@ public class MongoAuth implements ModInitializer {
         MongoAuthConfig.load();
         MongoAuthConfig.save();
 
-        if (MongoAuthConfig.config.auth().doMojangLogin && MongoAuthConfig.config.debug.doAuthHandlerCleaning) {
+        if (MongoAuthConfig.config.auth.doMojangLogin && MongoAuthConfig.config.debug.doAuthHandlerCleaning) {
             Thread thread = new Thread(() -> {
                 while (true) {
                     for (ClientConnection connection : AUTH_HANDLERS.keySet()) {
@@ -100,7 +100,7 @@ public class MongoAuth implements ModInitializer {
     }
 
     public static boolean playerForcedOffline(String name) {
-        for (String s : MongoAuthConfig.config.auth().offlineNames) {
+        for (String s : MongoAuthConfig.config.auth.offlineNames) {
             if (name.equalsIgnoreCase(s)) return true;
         }
         return false;

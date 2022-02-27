@@ -42,7 +42,7 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Au
     @Unique
     private Vec3d authPos = Vec3d.ZERO;
     @Unique
-    private int kickTimer = MongoAuthConfig.config.auth().kickTime * 20;
+    private int kickTimer = MongoAuthConfig.config.auth.kickTime * 20;
 
     private ServerPlayerEntityMixin(World world, BlockPos pos, float yaw, GameProfile profile) {
         super(world, pos, yaw, profile);
@@ -58,7 +58,7 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Au
         this.authenticated = authenticated;
         getAuthData().setAuthenticated(authenticated);
         if (!authenticated) {
-            kickTimer = MongoAuthConfig.config.auth().kickTime * 20;
+            kickTimer = MongoAuthConfig.config.auth.kickTime * 20;
         } else {
             onAuthenticated();
         }

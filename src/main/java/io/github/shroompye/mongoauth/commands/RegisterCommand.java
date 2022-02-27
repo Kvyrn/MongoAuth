@@ -25,7 +25,7 @@ public class RegisterCommand {
             doRegister(context);
             return 1;
         }).then(argument("globalPassword", StringArgumentType.word()).executes(context -> {
-            if (MongoAuthConfig.config.auth().requrePasswordToRegister && !MongoAuth.databaseAccess.verifyGlobalPassword(StringArgumentType.getString(context, "globalPassword"))) throw WRONG_PASSWORD.create();
+            if (MongoAuthConfig.config.auth.requrePasswordToRegister && !MongoAuth.databaseAccess.verifyGlobalPassword(StringArgumentType.getString(context, "globalPassword"))) throw WRONG_PASSWORD.create();
             doRegister(context);
             return 1;
         })))));

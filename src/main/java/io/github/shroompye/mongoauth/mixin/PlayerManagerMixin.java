@@ -30,7 +30,7 @@ public class PlayerManagerMixin {
                 return;
             }
             AuthData authData = MongoAuth.databaseAccess.getOrCreateAuthData(player.getUuid());
-            if (!MongoAuthConfig.config.auth().requireRegistration && !authData.registered()) {
+            if (!MongoAuthConfig.config.auth.requireRegistration && !authData.registered()) {
                 ((AuthenticationPlayer) player).silentAuth();
                 return;
             }

@@ -54,11 +54,11 @@ public class MongoAuthMainCommand {
 
     private static int setGlobalPasswordRequred(CommandContext<ServerCommandSource> context) {
         boolean value = BoolArgumentType.getBool(context, "value");
-        if (MongoAuthConfig.config.auth().requrePasswordToRegister == value) {
+        if (MongoAuthConfig.config.auth.requrePasswordToRegister == value) {
             context.getSource().sendError(new LiteralText(MongoAuthConfig.config.language.requirementUnchanged.formatted(value)));
             return 0;
         } else {
-            MongoAuthConfig.config.auth().requrePasswordToRegister = value;
+            MongoAuthConfig.config.auth.requrePasswordToRegister = value;
             MongoAuthConfig.save();
             context.getSource().sendFeedback(new LiteralText(MongoAuthConfig.config.language.requirementSet.formatted(value)), true);
             return 1;

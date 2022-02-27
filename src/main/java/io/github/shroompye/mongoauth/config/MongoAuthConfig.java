@@ -66,11 +66,7 @@ public class MongoAuthConfig {
         }
     }
 
-    private AuthConfigSection auth = new AuthConfigSection();
-
-    public AuthConfigSection auth() {
-        return auth;
-    }
+    public AuthConfigSection auth = new AuthConfigSection();
 
     @ConfigSerializable
     public static class AuthConfigSection {
