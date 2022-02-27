@@ -16,11 +16,6 @@ repositories {
     // Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
     // See https://docs.gradle.org/current/userguide/declaring_repositories.html
     // for more information about repositories.
-    maven() {
-        url = "https://repo.stellardrift.ca/repository/snapshots/"
-        name = "stellardriftSnapshots"
-        mavenContent { snapshotsOnly() }
-    }
     mavenCentral()
 }
 
@@ -41,15 +36,16 @@ dependencies {
     include "de.mkammerer:argon2-jvm:${project.argon}"
     include "de.mkammerer:argon2-jvm-nolibs:${project.argon}"
 
-    modImplementation "ca.stellardrift:confabricate:${project.confabricate}"
-    include "ca.stellardrift:confabricate:${project.confabricate}"
-
     // MySQL
     implementation "mysql:mysql-connector-java:${project.mysqlconnector}"
     include "mysql:mysql-connector-java:${project.mysqlconnector}"
 
     implementation "org.mongodb:mongo-java-driver:${project.mongo}"
     include "org.mongodb:mongo-java-driver:${project.mongo}"
+
+    implementation "com.electronwill.night-config:hocon:${project.nightconfig}"
+    include "com.electronwill.night-config:hocon:${project.nightconfig}"
+    include "com.electronwill.night-config:core:${project.nightconfig}"
 }
 
 processResources {

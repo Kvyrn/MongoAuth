@@ -53,9 +53,9 @@ public abstract class ServerLoginNetworkHandlerMixin implements NetworkHandlerSt
     )
     private void onHello(LoginHelloC2SPacket packet, CallbackInfo ci) {
         HasMongoAuthKeys mongoAuthKeysInfo = (HasMongoAuthKeys) packet;
-        if (MongoAuthConfig.config.debug.announceLogInAttempt)
+        if (MongoAuthConfig.CONFIG.debug.announceLogInAttempt)
             logNamed(packet.getProfile().getName() + " is trying to log in");
-        if (MongoAuthConfig.config.auth.doMojangLogin) {
+        if (MongoAuthConfig.CONFIG.auth.doMojangLogin) {
             try {
                 String playername = packet.getProfile().getName().toLowerCase();
                 Pattern pattern = Pattern.compile("^[a-z0-9_]{3,16}$");
@@ -70,7 +70,7 @@ public abstract class ServerLoginNetworkHandlerMixin implements NetworkHandlerSt
                     }
 
                     this.profile = packet.getProfile();
-                    if (MongoAuthConfig.config.debug.logMojangAccount)
+                    if (MongoAuthConfig.CONFIG.debug.logMojangAccount)
                         logNamed(packet.getProfile().getName() + " doesn't have a mojang account, MongoAuthKeys: " + (mongoAuthKeysInfo.getMongoAuthKeysVersion()));
                 } else if (!MongoAuth.onlineUsernames.contains(playername)) {
                     // Checking account status from API
@@ -89,7 +89,7 @@ public abstract class ServerLoginNetworkHandlerMixin implements NetworkHandlerSt
                         MongoAuth.onlineUsernames.add(playername);
                         // Authentication continues in original method
 
-                        if (MongoAuthConfig.config.debug.logMojangAccount)
+                        if (MongoAuthConfig.CONFIG.debug.logMojangAccount)
                             logNamed(packet.getProfile().getName() + " has a mojang account");
                     } else if (response == HttpURLConnection.HTTP_NO_CONTENT) {
                         // Player doesn't have a Mojang account
@@ -102,20 +102,20 @@ public abstract class ServerLoginNetworkHandlerMixin implements NetworkHandlerSt
                         }
 
                         this.profile = packet.getProfile();
-                        if (MongoAuthConfig.config.debug.logMojangAccount)
+                        if (MongoAuthConfig.CONFIG.debug.logMojangAccount)
                             logNamed(packet.getProfile().getName() + " doesn't have a mojang account, MongoAuthKeys: " + (mongoAuthKeysInfo.getMongoAuthKeysVersion()));
                     }
                 }
             } catch (Exception e) {
                 MongoAuth.logNamedError("Error verifying mojang account.", e);
-                this.disconnect(new LiteralText(MongoAuthConfig.config.language.errorVerifyingAccount.formatted(e.toString())));
+                this.disconnect(new LiteralText(MongoAuthConfig.CONFIG.language.errorVerifyingAccount.formatted(e.toString())));
             }
         }
     }
 
     @Redirect(method = "onKey", at = @At(value = "INVOKE", target = "Ljava/lang/Thread;start()V"))
     private void removeThreadOnKey(Thread instance) {
-        if (!MongoAuthConfig.config.auth.doMojangLogin || (this.profile != null && MongoAuth.onlineUsernames.contains(this.profile.getName().toLowerCase()))) {
+        if (!MongoAuthConfig.CONFIG.auth.doMojangLogin || (this.profile != null && MongoAuth.onlineUsernames.contains(this.profile.getName().toLowerCase()))) {
             instance.start();
         } else {
             //this.state = ServerLoginNetworkHandler.State.READY_TO_ACCEPT;

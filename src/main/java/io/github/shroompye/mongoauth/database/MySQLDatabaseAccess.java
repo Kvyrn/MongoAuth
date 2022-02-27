@@ -39,7 +39,7 @@ public class MySQLDatabaseAccess implements IDatabaseAccess {
     private final HashMap<UUID, AuthData> authDataCache = new HashMap<>();
 
     public MySQLDatabaseAccess() throws SQLException {
-        connection = DriverManager.getConnection("jdbc:mysql://" + MongoAuthConfig.config.databaseInfo.mySQL.address, MongoAuthConfig.config.databaseInfo.mySQL.username, MongoAuthConfig.config.databaseInfo.mySQL.password);
+        connection = DriverManager.getConnection("jdbc:mysql://" + MongoAuthConfig.CONFIG.databaseInfo.mySQL.address, MongoAuthConfig.CONFIG.databaseInfo.mySQL.username, MongoAuthConfig.CONFIG.databaseInfo.mySQL.password);
 
         // Create tables
         try (PreparedStatement createGlobalsTable = connection.prepareStatement("CREATE TABLE IF NOT EXISTS Globals (" +
@@ -224,7 +224,7 @@ public class MySQLDatabaseAccess implements IDatabaseAccess {
     private long getLastInvId(UUID uuid) throws SQLException {
         PreparedStatement statement = connection.prepareStatement(getLastInvId);
         statement.setString(1, uuid.toString());
-        statement.setString(2, MongoAuthConfig.config.databaseInfo.serverId);
+        statement.setString(2, MongoAuthConfig.CONFIG.databaseInfo.serverId);
         ResultSet set = statement.executeQuery();
         if (set.next()) {
             return set.getLong("LastInvId");
@@ -250,7 +250,7 @@ public class MySQLDatabaseAccess implements IDatabaseAccess {
 
             PreparedStatement insertInv = connection.prepareStatement(insertInvSlot);
             insertInv.setLong(1, id);
-            insertInv.setString(2, MongoAuthConfig.config.databaseInfo.serverId);
+            insertInv.setString(2, MongoAuthConfig.CONFIG.databaseInfo.serverId);
             insertInv.setString(3, player.getUuidAsString());
 
             insertInv.setString(5, "main");
@@ -277,12 +277,12 @@ public class MySQLDatabaseAccess implements IDatabaseAccess {
             PreparedStatement updateInvId = connection.prepareStatement(updateLastInvId);
             updateInvId.setLong(1, id);
             updateInvId.setString(2, player.getUuidAsString());
-            updateInvId.setString(3, MongoAuthConfig.config.databaseInfo.serverId);
+            updateInvId.setString(3, MongoAuthConfig.CONFIG.databaseInfo.serverId);
             updateInvId.executeUpdate();
 
             PreparedStatement dropOldInv = connection.prepareStatement(dropOldInvSlots);
             dropOldInv.setLong(1, prevInvId);
-            dropOldInv.setString(2, MongoAuthConfig.config.databaseInfo.serverId);
+            dropOldInv.setString(2, MongoAuthConfig.CONFIG.databaseInfo.serverId);
             dropOldInv.setString(3, player.getUuidAsString());
             dropOldInv.executeUpdate();
         } catch (SQLException e) {
@@ -300,7 +300,7 @@ public class MySQLDatabaseAccess implements IDatabaseAccess {
             LinkedList<String> offhandStr = new LinkedList<>();
 
             statement.setLong(1, id);
-            statement.setString(2, MongoAuthConfig.config.databaseInfo.serverId);
+            statement.setString(2, MongoAuthConfig.CONFIG.databaseInfo.serverId);
             statement.setString(3, player.getUuidAsString());
 
             ResultSet set = statement.executeQuery();
@@ -332,12 +332,12 @@ public class MySQLDatabaseAccess implements IDatabaseAccess {
                 update.setDouble(2, authPlayer.getAuthPos().y);
                 update.setDouble(3, authPlayer.getAuthPos().z);
                 update.setString(4, player.getUuidAsString());
-                update.setString(5, MongoAuthConfig.config.databaseInfo.serverId);
+                update.setString(5, MongoAuthConfig.CONFIG.databaseInfo.serverId);
                 update.executeUpdate();
             } else {
                 PreparedStatement insert = connection.prepareStatement(insertAuthPlayerData);
                 insert.setString(1, player.getUuidAsString());
-                insert.setString(2, MongoAuthConfig.config.databaseInfo.serverId);
+                insert.setString(2, MongoAuthConfig.CONFIG.databaseInfo.serverId);
                 if (authPlayer.getAuthPos() == null) {
                     Vec3d pos = player.getPos();
                     insert.setDouble(3, pos.x);
@@ -360,7 +360,7 @@ public class MySQLDatabaseAccess implements IDatabaseAccess {
         try {
             PreparedStatement load = connection.prepareStatement(getAuthPlayerData);
             load.setString(1, player.getUuidAsString());
-            load.setString(2, MongoAuthConfig.config.databaseInfo.serverId);
+            load.setString(2, MongoAuthConfig.CONFIG.databaseInfo.serverId);
             ResultSet set = load.executeQuery();
             if (set.next()) {
                 double x = set.getDouble("XPos");
@@ -377,7 +377,7 @@ public class MySQLDatabaseAccess implements IDatabaseAccess {
         try {
             PreparedStatement statement = connection.prepareStatement(authPlayerDataExists);
             statement.setString(1, uuid.toString());
-            statement.setString(2, MongoAuthConfig.config.databaseInfo.serverId);
+            statement.setString(2, MongoAuthConfig.CONFIG.databaseInfo.serverId);
             return statement.executeQuery().next();
         } catch (SQLException e) {
             logException(e, "authPlayerDataExists");

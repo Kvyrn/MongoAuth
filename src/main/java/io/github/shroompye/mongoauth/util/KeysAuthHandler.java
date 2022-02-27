@@ -73,17 +73,17 @@ public class KeysAuthHandler {
                 sigGood = sig.verify(input);
             } catch (InvalidKeyException | SignatureException | NoSuchAlgorithmException e) {
                 MongoAuth.logNamedError("Error verifying key", e);
-                networkHandler.disconnect(new LiteralText(MongoAuthConfig.config.language.errorVerifyingKey));
+                networkHandler.disconnect(new LiteralText(MongoAuthConfig.CONFIG.language.errorVerifyingKey));
                 return;
             }
             if (sigGood) {
                 ((NetworkHandlerStateAccess) networkHandler).setState(ServerLoginNetworkHandler.State.READY_TO_ACCEPT);
-                if (MongoAuthConfig.config.debug.announceAuthConsole) {
+                if (MongoAuthConfig.CONFIG.debug.announceAuthConsole) {
                     MongoAuth.logNamed(profile.getName() + " authenticated with key");
                 }
             } else {
-                networkHandler.disconnect(new LiteralText(MongoAuthConfig.config.language.invalidKey));
-                if (MongoAuthConfig.config.debug.announceAuthConsole) {
+                networkHandler.disconnect(new LiteralText(MongoAuthConfig.CONFIG.language.invalidKey));
+                if (MongoAuthConfig.CONFIG.debug.announceAuthConsole) {
                     MongoAuth.logNamed(profile.getName() + " failed to authenticate with key");
                 }
             }
@@ -92,7 +92,7 @@ public class KeysAuthHandler {
                     && MongoAuth.databaseAccess.getOrCreateAuthData(profile.getId()).registered()) {
                 AuthData data = MongoAuth.databaseAccess.getOrCreateAuthData(profile.getId());
                 if (data.getAuthenticationMethod() == AuthMethod.KEYS) {
-                    networkHandler.disconnect(new LiteralText(MongoAuthConfig.config.language.userAlredyExists));
+                    networkHandler.disconnect(new LiteralText(MongoAuthConfig.CONFIG.language.userAlredyExists));
                 } else {
                     MongoAuth.playersWithMongoAuthKeys.removeIf(s -> s.equals(profile.getName().toLowerCase(Locale.ROOT)));
                 }
@@ -100,13 +100,13 @@ public class KeysAuthHandler {
             }
 
             if (!isKeyValid(input)) {
-                networkHandler.disconnect(new LiteralText(MongoAuthConfig.config.language.registrationInvalidkey));
+                networkHandler.disconnect(new LiteralText(MongoAuthConfig.CONFIG.language.registrationInvalidkey));
             }
 
             MongoAuth.databaseAccess.getOrCreateAuthData(profile.getId()).setPaswordHash(encodeKey(input));
             ((NetworkHandlerStateAccess) networkHandler).setState(ServerLoginNetworkHandler.State.READY_TO_ACCEPT);
 
-            if (MongoAuthConfig.config.debug.logRegistration) {
+            if (MongoAuthConfig.CONFIG.debug.logRegistration) {
                 MongoAuth.logNamed(profile.getName() + " registered with key");
             }
         }

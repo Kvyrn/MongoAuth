@@ -22,7 +22,7 @@ public class PlayerListS2CPacketMixin {
 
     @Inject(method = "<init>(Lnet/minecraft/network/packet/s2c/play/PlayerListS2CPacket$Action;[Lnet/minecraft/server/network/ServerPlayerEntity;)V", at = @At("TAIL"))
     private void construct(PlayerListS2CPacket.Action action, ServerPlayerEntity[] players, CallbackInfo ci) {
-        if (action == PlayerListS2CPacket.Action.ADD_PLAYER && !MongoAuthConfig.config.privacy.showInPlayerList) {
+        if (action == PlayerListS2CPacket.Action.ADD_PLAYER && !MongoAuthConfig.CONFIG.privacy.showInPlayerList) {
             entries.removeIf(entry -> {
                 AuthData authData = MongoAuth.databaseAccess.getOrCreateAuthData(entry.getProfile().getId());
                 return !authData.authenticated() &&
@@ -34,7 +34,7 @@ public class PlayerListS2CPacketMixin {
 
     @Inject(method = "<init>(Lnet/minecraft/network/packet/s2c/play/PlayerListS2CPacket$Action;Ljava/util/Collection;)V", at = @At("TAIL"))
     private void altConstruct(PlayerListS2CPacket.Action action, Collection<ServerPlayerEntity> players, CallbackInfo ci) {
-        if (action == PlayerListS2CPacket.Action.ADD_PLAYER && !MongoAuthConfig.config.privacy.showInPlayerList) {
+        if (action == PlayerListS2CPacket.Action.ADD_PLAYER && !MongoAuthConfig.CONFIG.privacy.showInPlayerList) {
             entries.removeIf(entry -> {
                 AuthData authData = MongoAuth.databaseAccess.getOrCreateAuthData(entry.getProfile().getId());
                 return !authData.authenticated() &&

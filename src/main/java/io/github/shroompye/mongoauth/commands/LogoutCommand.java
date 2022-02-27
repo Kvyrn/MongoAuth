@@ -10,7 +10,7 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.LiteralText;
 
 public class LogoutCommand {
-    public static final SimpleCommandExceptionType NOT_LOGGED_IN = new SimpleCommandExceptionType(new LiteralText(MongoAuthConfig.config.language.alredyLoggedOut));
+    public static final SimpleCommandExceptionType NOT_LOGGED_IN = new SimpleCommandExceptionType(new LiteralText(MongoAuthConfig.CONFIG.language.alredyLoggedOut));
 
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(CommandManager.literal("logout").executes(context -> {
@@ -19,7 +19,7 @@ public class LogoutCommand {
                 MongoAuth.databaseAccess.getOrCreateAuthData(context.getSource().getPlayer().getUuid()).removeSession();
                 authPlayer.setAuthenticated(false);
                 MongoAuth.databaseAccess.saveAuthPlayer(context.getSource().getPlayer());
-                context.getSource().sendFeedback(new LiteralText(MongoAuthConfig.config.language.logOutSuccesful), false);
+                context.getSource().sendFeedback(new LiteralText(MongoAuthConfig.CONFIG.language.logOutSuccesful), false);
             } else {
                 throw NOT_LOGGED_IN.create();
             }

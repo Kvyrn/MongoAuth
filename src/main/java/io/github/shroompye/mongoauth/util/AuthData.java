@@ -64,8 +64,8 @@ public class AuthData {
     }
 
     public void makeSession(String ip) {
-        if (MongoAuthConfig.config.auth.sessionTime > 1) {
-            this.session = new AuthSession(MongoAuthConfig.config.auth.sessionTime, ip);
+        if (MongoAuthConfig.CONFIG.auth.sessionTime > 1) {
+            this.session = new AuthSession(MongoAuthConfig.CONFIG.auth.sessionTime, ip);
         }
     }
 

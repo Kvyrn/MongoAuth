@@ -36,7 +36,7 @@ public class MongoAuth implements ModInitializer {
         MongoAuthConfig.load();
         MongoAuthConfig.save();
 
-        if (MongoAuthConfig.config.auth.doMojangLogin && MongoAuthConfig.config.debug.doAuthHandlerCleaning) {
+        if (MongoAuthConfig.CONFIG.auth.doMojangLogin && MongoAuthConfig.CONFIG.debug.doAuthHandlerCleaning) {
             Thread thread = new Thread(() -> {
                 while (true) {
                     for (ClientConnection connection : AUTH_HANDLERS.keySet()) {
@@ -78,7 +78,7 @@ public class MongoAuth implements ModInitializer {
 
         KeysAuthHandler.registerGlobalReciver();
 
-        switch (MongoAuthConfig.config.databaseInfo.databaseType) {
+        switch (MongoAuthConfig.CONFIG.databaseInfo.databaseType) {
             case "mongodb" -> databaseAccess = new MongoDatabaseAccess();
             case "mysql" -> {
                 try {
@@ -87,7 +87,7 @@ public class MongoAuth implements ModInitializer {
                     FabricGuiEntry.displayCriticalError(e, true);
                 }
             }
-            default -> FabricGuiEntry.displayCriticalError(new IllegalArgumentException("[" + NAME + "] Invalid database type: " + MongoAuthConfig.config.databaseInfo.databaseType), true);
+            default -> FabricGuiEntry.displayCriticalError(new IllegalArgumentException("[" + NAME + "] Invalid database type: " + MongoAuthConfig.CONFIG.databaseInfo.databaseType), true);
         }
     }
 
@@ -100,7 +100,7 @@ public class MongoAuth implements ModInitializer {
     }
 
     public static boolean playerForcedOffline(String name) {
-        for (String s : MongoAuthConfig.config.auth.offlineNames) {
+        for (String s : MongoAuthConfig.CONFIG.auth.offlineNames) {
             if (name.equalsIgnoreCase(s)) return true;
         }
         return false;
@@ -108,7 +108,7 @@ public class MongoAuth implements ModInitializer {
 
     public static void optionalyHide(ServerPlayerEntity player) {
         optionalyHideInvless(player);
-        if (MongoAuthConfig.config.privacy.hideInventory) {
+        if (MongoAuthConfig.CONFIG.privacy.hideInventory) {
             MongoAuth.databaseAccess.storeInv(player);
             player.getInventory().clear();
         }
@@ -123,10 +123,10 @@ public class MongoAuth implements ModInitializer {
         player.setInvulnerable(true);
         player.setNoGravity(true);
         player.setInvisible(true);
-        if (MongoAuthConfig.config.privacy.hidePosition) {
+        if (MongoAuthConfig.CONFIG.privacy.hidePosition) {
             authPlayer.setAuthPos(player.getPos());
             databaseAccess.saveAuthPlayer(player);
-            player.requestTeleport(0.5d, MongoAuthConfig.config.privacy.hiddenYLevel, 0.5d);
+            player.requestTeleport(0.5d, MongoAuthConfig.CONFIG.privacy.hiddenYLevel, 0.5d);
         }
     }
 }

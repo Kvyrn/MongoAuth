@@ -31,10 +31,10 @@ public class MongoDatabaseAccess implements IDatabaseAccess {
     private final HashMap<UUID, AuthData> cachedData = new HashMap<>();
 
     public MongoDatabaseAccess() {
-        String[] split = MongoAuthConfig.config.databaseInfo.mongoDB.address.split(":");
+        String[] split = MongoAuthConfig.CONFIG.databaseInfo.mongoDB.address.split(":");
         int port = split.length < 2 ? 27017 : Integer.parseInt(split[1]);
         String address = split[0];
-        MongoCredential credential = MongoCredential.createCredential(MongoAuthConfig.config.databaseInfo.mongoDB.username, MongoAuthConfig.config.databaseInfo.mongoDB.userSourceDatabase, MongoAuthConfig.config.databaseInfo.mongoDB.password.toCharArray());
+        MongoCredential credential = MongoCredential.createCredential(MongoAuthConfig.CONFIG.databaseInfo.mongoDB.username, MongoAuthConfig.CONFIG.databaseInfo.mongoDB.userSourceDatabase, MongoAuthConfig.CONFIG.databaseInfo.mongoDB.password.toCharArray());
         MongoClientSettings settings = MongoClientSettings.builder()
                 .credential(credential)
                 .applyToClusterSettings(builder -> builder.hosts(Collections.singletonList(new ServerAddress(address, port))))
@@ -42,7 +42,7 @@ public class MongoDatabaseAccess implements IDatabaseAccess {
         MongoClient client = MongoClients.create(settings);
 
         try {
-            database = client.getDatabase(MongoAuthConfig.config.databaseInfo.mongoDB.database);
+            database = client.getDatabase(MongoAuthConfig.CONFIG.databaseInfo.mongoDB.database);
         } catch (IllegalArgumentException e) {
             LOGGER.fatal("[" + NAME + "] Invalid MongoDB database!", e);
             FabricGuiEntry.displayCriticalError(e, true);
@@ -63,10 +63,10 @@ public class MongoDatabaseAccess implements IDatabaseAccess {
         }
 
         try {
-            serverSpecificCollection = database.getCollection("server-" + MongoAuthConfig.config.databaseInfo.serverId);
+            serverSpecificCollection = database.getCollection("server-" + MongoAuthConfig.CONFIG.databaseInfo.serverId);
         } catch (IllegalArgumentException e) {
-            database.createCollection("server-" + MongoAuthConfig.config.databaseInfo.serverId);
-            serverSpecificCollection = database.getCollection("server-" + MongoAuthConfig.config.databaseInfo.serverId);
+            database.createCollection("server-" + MongoAuthConfig.CONFIG.databaseInfo.serverId);
+            serverSpecificCollection = database.getCollection("server-" + MongoAuthConfig.CONFIG.databaseInfo.serverId);
         }
     }
 

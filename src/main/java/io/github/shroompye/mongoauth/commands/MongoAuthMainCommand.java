@@ -34,7 +34,7 @@ public class MongoAuthMainCommand {
 
     private static int reloadConfig(CommandContext<ServerCommandSource> context) {
         MongoAuthConfig.load();
-        context.getSource().sendFeedback(new LiteralText(MongoAuthConfig.config.language.configReloaded), true);
+        context.getSource().sendFeedback(new LiteralText(MongoAuthConfig.CONFIG.language.configReloaded), true);
         return 1;
     }
 
@@ -44,9 +44,9 @@ public class MongoAuthMainCommand {
             boolean exists = MongoAuth.databaseAccess.authDataExists(profile.getId(), false);
             if (exists) {
                 MongoAuth.databaseAccess.getOrCreateAuthData(profile.getId()).removeSession();
-                ctx.getSource().sendFeedback(new LiteralText(MongoAuthConfig.config.language.sessionRemoved.formatted(profile.getName())), true);
+                ctx.getSource().sendFeedback(new LiteralText(MongoAuthConfig.CONFIG.language.sessionRemoved.formatted(profile.getName())), true);
             } else {
-                ctx.getSource().sendError(new LiteralText(MongoAuthConfig.config.language.userInexistent.formatted(profile.getName())));
+                ctx.getSource().sendError(new LiteralText(MongoAuthConfig.CONFIG.language.userInexistent.formatted(profile.getName())));
             }
         }
         return targets.size();
@@ -54,13 +54,13 @@ public class MongoAuthMainCommand {
 
     private static int setGlobalPasswordRequred(CommandContext<ServerCommandSource> context) {
         boolean value = BoolArgumentType.getBool(context, "value");
-        if (MongoAuthConfig.config.auth.requrePasswordToRegister == value) {
-            context.getSource().sendError(new LiteralText(MongoAuthConfig.config.language.requirementUnchanged.formatted(value)));
+        if (MongoAuthConfig.CONFIG.auth.requrePasswordToRegister == value) {
+            context.getSource().sendError(new LiteralText(MongoAuthConfig.CONFIG.language.requirementUnchanged.formatted(value)));
             return 0;
         } else {
-            MongoAuthConfig.config.auth.requrePasswordToRegister = value;
+            MongoAuthConfig.CONFIG.auth.requrePasswordToRegister = value;
             MongoAuthConfig.save();
-            context.getSource().sendFeedback(new LiteralText(MongoAuthConfig.config.language.requirementSet.formatted(value)), true);
+            context.getSource().sendFeedback(new LiteralText(MongoAuthConfig.CONFIG.language.requirementSet.formatted(value)), true);
             return 1;
         }
     }
@@ -71,7 +71,7 @@ public class MongoAuthMainCommand {
         if (!password.equals(verifyPassword)) throw RegisterCommand.UNMATCHING_PASSWORD.create();
 
         MongoAuth.databaseAccess.setGlobalPassword(password);
-        context.getSource().sendFeedback(new LiteralText(MongoAuthConfig.config.language.globalPasswordChanged), true);
+        context.getSource().sendFeedback(new LiteralText(MongoAuthConfig.CONFIG.language.globalPasswordChanged), true);
         return 1;
     }
 
@@ -82,9 +82,9 @@ public class MongoAuthMainCommand {
             boolean exists = MongoAuth.databaseAccess.authDataExists(profile.getId(), true);
             if (exists) {
                 MongoAuth.databaseAccess.getOrCreateAuthData(profile.getId()).setPaswordHash(passwordHash);
-                ctx.getSource().sendFeedback(new LiteralText(MongoAuthConfig.config.language.passwordChanged.formatted(profile.getName())), true);
+                ctx.getSource().sendFeedback(new LiteralText(MongoAuthConfig.CONFIG.language.passwordChanged.formatted(profile.getName())), true);
             } else {
-                ctx.getSource().sendError(new LiteralText(MongoAuthConfig.config.language.userInexistent.formatted(profile.getName())));
+                ctx.getSource().sendError(new LiteralText(MongoAuthConfig.CONFIG.language.userInexistent.formatted(profile.getName())));
             }
         }
         return targets.size();
@@ -93,7 +93,7 @@ public class MongoAuthMainCommand {
     private static int clearCache(CommandContext<ServerCommandSource> ctx) {
         MongoAuth.databaseAccess.clearAuthDataCache();
         MongoAuth.onlineUsernames.clear();
-        ctx.getSource().sendFeedback(new LiteralText(MongoAuthConfig.config.language.cacheCleared), true);
+        ctx.getSource().sendFeedback(new LiteralText(MongoAuthConfig.CONFIG.language.cacheCleared), true);
         return 1;
     }
 
@@ -103,9 +103,9 @@ public class MongoAuthMainCommand {
             boolean exists = MongoAuth.databaseAccess.authDataExists(profile.getId(), false);
             if (exists) {
                 MongoAuth.databaseAccess.deleteAuthData(profile.getId());
-                ctx.getSource().sendFeedback(new LiteralText(MongoAuthConfig.config.language.userRemoved.formatted(profile.getName())), true);
+                ctx.getSource().sendFeedback(new LiteralText(MongoAuthConfig.CONFIG.language.userRemoved.formatted(profile.getName())), true);
             } else {
-                ctx.getSource().sendError(new LiteralText(MongoAuthConfig.config.language.userInexistent.formatted(profile.getName())));
+                ctx.getSource().sendError(new LiteralText(MongoAuthConfig.CONFIG.language.userInexistent.formatted(profile.getName())));
             }
         }
         return targets.size();
