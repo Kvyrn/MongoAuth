@@ -10,6 +10,7 @@ import io.github.shroompye.mongoauth.util.KeysAuthHandler;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.impl.gui.FabricGuiEntry;
 import net.minecraft.network.ClientConnection;
@@ -20,6 +21,7 @@ import org.apache.logging.log4j.Logger;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class MongoAuth implements ModInitializer {
     public static final String modid = "mongo-auth";
@@ -37,21 +39,30 @@ public class MongoAuth implements ModInitializer {
         MongoAuthConfig.save();
 
         if (MongoAuthConfig.CONFIG.auth.doMojangLogin && MongoAuthConfig.CONFIG.debug.doAuthHandlerCleaning) {
-            Thread thread = new Thread(() -> {
-                while (true) {
-                    for (ClientConnection connection : AUTH_HANDLERS.keySet()) {
-                        if (!connection.isOpen()) {
-                            AUTH_HANDLERS.remove(connection);
+            AtomicReference<Thread> thread = new AtomicReference<>();
+
+            ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+                thread.set(new Thread(() -> {
+                    while (!server.isStopped()) {
+                        for (ClientConnection connection : AUTH_HANDLERS.keySet()) {
+                            if (!connection.isOpen()) {
+                                AUTH_HANDLERS.remove(connection);
+                            }
+                        }
+                        try {
+                            Thread.sleep(120000);
+                        } catch (InterruptedException e) {
+                            break;
                         }
                     }
-                    try {
-                        Thread.sleep(120000);
-                    } catch (InterruptedException e) {
-                        LOGGER.warn("[" + NAME + "] Cleaner thread interrupted!", e);
-                    }
+                }, "MongoAuthCleaner"));
+                thread.get().start();
+            });
+            ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
+                if (thread.get() != null) {
+                    thread.get().interrupt();
                 }
-            }, "MongoAuthCleaner");
-            thread.start();
+            });
         }
 
         ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
